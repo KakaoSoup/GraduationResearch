@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <random>
-#define LEN 4
+#define LEN 3
 #define SIZE 1 << LEN
 #define FAULT 20
 #define BANK 2
