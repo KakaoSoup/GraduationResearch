@@ -197,7 +197,7 @@ public:
 						Cnt++;
 					}
 				}
-				if (Cnt >= R_SPARE || Cnt >= C_SPARE) {
+				if (Cnt >= R_SPARE-1 || Cnt >= C_SPARE-1) {
 					over = true;
 					break;
 				}
@@ -208,7 +208,9 @@ public:
 				for (int i = 0; i < cnt; i++) {
 					if (cam_ptr(*camptr) == ptr) {
 						if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
-							cout << "npcam, " << *camptr << " is deleted!" << endl;
+							cout << "npcam, ";
+							binary_exp(*camptr);
+							cout << " is deleted." << endl;
 							*camptr = 0;
 						}
 					}
@@ -273,13 +275,14 @@ public:
 			}
 			cnt--;
 		}
-		cout << "(2)" << endl;
+		cout << "(2)";
 	}
 	void show_npcam() {
 		int cnt = npcam_cnt();
 		for (int i = 0; i < cnt; i++) {
 			cout << '#' << i << " npcam : ";
 			binary_exp(show_ith_cam(i));
+			cout << endl;
 		}
 		cout << endl;
 	}

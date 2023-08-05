@@ -1,6 +1,6 @@
 #ifndef HEADER_H
 #define HEADER_H
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <random>
 #define LEN 3
@@ -25,6 +25,7 @@ extern bool early_term;
 // function
 extern void generate_fault();
 extern void show_faults();
+extern void read_fault_file();
 extern void print_mem();
 extern void BIRA();
 extern void show_pcam();

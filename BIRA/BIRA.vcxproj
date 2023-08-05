@@ -136,6 +136,9 @@
     <ClInclude Include="header.h" />
     <ClInclude Include="spare_struct.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="input.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -81,3 +81,14 @@ void generate_fault() {
 	fault_addr_convert(fault_addr);
 	fault_arrange();
 }
+
+
+void read_fault_file() {
+	for (int i = 0; i < SIZE; i++) {
+		for (int k = 0; k < BANK; k++) {
+			for (int j = 0; j < SIZE; j++) {
+				cin >> mem[k][i][j];
+			}
+		}
+	}
+}
