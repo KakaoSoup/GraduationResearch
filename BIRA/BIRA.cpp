@@ -46,7 +46,8 @@ void store_CAM() {
 }
 
 void BIRA() {
-	store_CAM();
+	store_CAM();			// Fault collection
 	pcam.show_pcam();
 	npcam.show_npcam();
+
 }

@@ -46,13 +46,13 @@ public:
 	void reset() {
 		cnt = 0;
 		memset(cam, '\0', sizeof(cam));
+	}
+	Pcam() {
+		reset();
 		bnk_offset = MUST_FLAG;
 		col_offset = bnk_offset + bnk_len;
 		row_offset = col_offset + col_len;
 		en_offset = row_offset + row_len;
-	}
-	Pcam() {
-		reset();
 	}
 	bool en(int i) {
 		return (cam[i] >> en_offset);
@@ -64,7 +64,7 @@ public:
 			cam[cnt] |= (c & mask) << col_offset;
 			cam[cnt++] |= (b & bnk_mask) << bnk_offset;
 		}
-		else if (cnt >= PCAM) {	// if #faults > #total_spares
+		else if (cnt >= PCAM) {		// if #faults > #total_spares
 			early_term = true;		// generate early_term signal
 			cout << "Alert : early term signal generated!\n";
 		}
