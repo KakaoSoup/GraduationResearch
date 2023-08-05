@@ -131,6 +131,7 @@ public:
 		cout << "(2)" << endl;
 	}
 	void show_pcam() {
+		cout << endl;
 		int cnt = pcam_cnt();
 		for (int i = 0; i < cnt; i++) {
 			cout << '#' << i << " pcam : ";
@@ -161,12 +162,6 @@ private :
 	int ptr_mask;
 	int dscrpt_offset;
 	int addr_offset;
-
-	struct Cam {
-		Cam* next;
-		Cam* prev;
-		unsigned cam;
-	};
 public:
 	void reset() {
 		cnt = 0;
@@ -182,8 +177,8 @@ public:
 		ptr_mask = (1 << ptr_len) - 1;
 		en_offset = ptr_offset + ptr_len;
 	}
-	bool en(unsigned* cam) {
-		return (*cam >> en_offset) & 0x1;
+	bool en(unsigned cam) {
+		return (cam >> en_offset) & 0x1;
 	}
 	bool full() {
 		if (cnt >= NPCAM)
@@ -192,17 +187,43 @@ public:
 			return false;
 	}
 	void set_npcam(int ptr, bool rc, int addr, int bnk) {
-		for (int i = 0; i < NPCAM; i++) {
-			
-		}
-		if (cnt < NPCAM && en(camptr)) {
-			*camptr |= 1 << en_offset;
-			*camptr |= (ptr & ptr_mask) << ptr_offset;
-			*camptr |= rc << dscrpt_offset;
-			*camptr |= (addr & mask) << addr_offset;
-			*camptr |= bnk & bnk_mask;
-			camptr++;
-			cnt++;
+		camptr = &cam[0];
+		int Cnt = 0;
+		bool over = false;
+		if (cnt < NPCAM) {
+			for (int i = 0; i < cnt; i++) {
+				if (cam_ptr(*camptr) == ptr) {
+					if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
+						Cnt++;
+					}
+				}
+				if (Cnt >= R_SPARE || Cnt >= C_SPARE) {
+					over = true;
+					break;
+				}
+				camptr++;
+			}
+			if (over) {
+				camptr = &cam[0];
+				for (int i = 0; i < cnt; i++) {
+					if (cam_ptr(*camptr) == ptr) {
+						if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
+							cout << "npcam, " << *camptr << " is deleted!" << endl;
+							*camptr = 0;
+						}
+					}
+					camptr++;
+				}
+			}
+			else {
+				*camptr |= 1 << en_offset;
+				*camptr |= (ptr & ptr_mask) << ptr_offset;
+				*camptr |= rc << dscrpt_offset;
+				*camptr |= (addr & mask) << addr_offset;
+				*camptr |= bnk & bnk_mask;
+				camptr++;
+				cnt++;
+			}
 		}
 	}
 	int npcam_cnt() {
@@ -211,7 +232,7 @@ public:
 	int cam_ptr(unsigned cam) {
 		return (cam >> ptr_offset) & ptr_mask;
 	}
-	int dsrpt(unsigned cam) {
+	bool dsrpt(unsigned cam) {
 		return (cam >> dscrpt_offset) & 0x1;
 	}
 	int addr(unsigned cam) {

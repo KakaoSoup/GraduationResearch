@@ -1,8 +1,8 @@
 #ifndef SPARE_STRUCT
 #define SPARE_STRUCT
 #include <iostream>
-#define R_SPARE 4
-#define C_SPARE 4
+#define R_SPARE 3
+#define C_SPARE 3
 
 class Spare {
 protected:
