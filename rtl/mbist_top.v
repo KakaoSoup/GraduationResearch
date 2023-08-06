@@ -60,7 +60,7 @@ always @ (posedge clk)
 
 begin
     if((rst) || (early_term)) begin		// if signal 'rst' or 'early_term' is received, resets the Test by set 0 to all param
-		ce_gen <= 0;					
+	ce_gen <= 0;					
         we_gen <= 0;					
         row_addr_gen <= 0;				
         col_addr_gen <= 0;				
@@ -68,97 +68,95 @@ begin
         row_addr_buf <= 0;
         col_addr_buf <= 0;
         bank_addr_buf <= 0;		
-		data_gen <= 0;		
+	data_gen <= 0;		
         check <= 0;
         pattern <= 0;
-	    first <=0;
-		state <= IDLE;				
+	first <=0;
+	state <= IDLE;				
         test_end_reg <= 0;        		
 	end
     else begin
         case(state)
-		// state == IDLE
+	// state == IDLE
         IDLE: begin
-        //$display("State = IDLE");
-            if(test) begin				// test == 1 : test mode
-                state <= state0_w0;		// state => w0
-				bank_addr_gen <= 2'b01;	// bank address => 1st bank
-            end
-            else begin					// test == 0 : test mode X
-                state <= IDLE;			// hold the state IDLE
-            end
-		end
+        	//$display("State = IDLE");
+        	if(test) begin				// test == 1 : test mode
+        		state <= state0_w0;		// state => w0
+			bank_addr_gen <= 2'b01;	// bank address => 1st bank
+        	end
+        	else begin					// test == 0 : test mode X
+                	state <= IDLE;			// hold the state IDLE
+        	end
+	end
 		
-		// state == w0
+	// state == w0
         state0_w0: begin
    	        we_gen <= 1;								// do write operation
-            ce_gen <= 1;								// activate read / wirte operation
+            	ce_gen <= 1;								// activate read / wirte operation
 	        check <= 0;									// check = 0
-            row_addr_gen <= row_addr_gen + 1; 			// move row address 1 by 1
-            data_gen <=  8'b0000_0000;					// set temporal write data = 0
-            if(row_addr_gen == 'd511) begin				// temporal row meet the half of bank
-          	   if(col_addr_gen == 'd504) begin    		// col address meet the half of bank
-				   bank_addr_gen <= 2'b10;				// bank : 1st -> 2nd
-                   col_addr_gen <= 0;					// col address = 0
-				   if(bank_addr_gen == 2'b10) begin		// if bank address is already in 2nd
-	   	               first <= 0;						// reset first
-                       ce_gen <= 0;				   		// reset ce_gen stop write/read operation
+           	row_addr_gen <= row_addr_gen + 1; 			// move row address 1 by 1
+            	data_gen <=  8'b0000_0000;					// set temporal write data = 0
+            	if(row_addr_gen == 'd511) begin				// temporal row meet the half of bank
+          		if(col_addr_gen == 'd504) begin    		// col address meet the half of bank
+				bank_addr_gen <= 2'b10;				// bank : 1st -> 2nd
+                   		col_addr_gen <= 0;					// col address = 0
+				if(bank_addr_gen == 2'b10) begin		// if bank address is already in 2nd
+	   	               		first <= 0;						// reset first
+                       			ce_gen <= 0;				   		// reset ce_gen stop write/read operation
 				       state <= state1_r0;				// state => r0, terminate write operation
-				   end				   
-				end
-				else begin							
-				    col_addr_gen <= col_addr_gen + 8; 	// col address != 504(last col)
-					row_addr_gen <= 0;					// move next col line
-				end
+				end				   
+			end
+			else begin							
+				col_addr_gen <= col_addr_gen + 8; 	// col address != 504(last col)
+				row_addr_gen <= 0;					// move next col line
+			end
+            	end
+	end
 
-            end
-		end
-
-		// state == r0
+	// state == r0
         state1_r0: begin
-            if(first == 0) begin    						// with first of read operation
-				row_addr_gen <= 0;							// reset temporal row address
-				col_addr_gen <= 0;							// reset temporal col address
-	            first <= 1;									// set first 1 to skip current loop
-				bank_addr_gen <= 2'b01;						// set temporal bank : 1st
-		    end
-            else begin
-   	            we_gen <= 0;								// do read operaion
-                ce_gen <= 1;								// activate read / wirte operaion
-	            check <= 1;									// activate another loop below
-				pattern <= 0;							
-				row_addr_buf <= row_addr_gen;				// dupplicate temporal address -> buffer
-				col_addr_buf <= col_addr_gen;			
-				bank_addr_buf <= bank_addr_gen;
-                row_addr_gen <= row_addr_gen + 1;			// move row address 1 by 1
-                if(row_addr_gen == 'd511) begin				// temporal row meet the half of bank
-          	       if(col_addr_gen == 'd504) begin     		// temporal col address meet the half of bank
-			    	   bank_addr_gen <= 2'b10;				// bank : 1st -> 2nd
-					   col_addr_gen <= 0;					// col address = 0
-			    	   if(bank_addr_gen == 2'b10) begin		// if bank address is already 2nd, reset all variables
-	   	                   first <= 0;					
-                           ce_gen <= 0;
-						   test_end_reg <= 1;				// terminate test			   
-			    	       state <= STOP;					// state => STOP, terminate read operation
-			    	   end				   
+        	if(first == 0) begin    						// with first of read operation
+			row_addr_gen <= 0;							// reset temporal row address
+			col_addr_gen <= 0;							// reset temporal col address
+	            	first <= 1;									// set first 1 to skip current loop
+			bank_addr_gen <= 2'b01;						// set temporal bank : 1st
+		end
+            	else begin
+   	        	we_gen <= 0;								// do read operaion
+                	ce_gen <= 1;								// activate read / wirte operaion
+	            	check <= 1;									// activate another loop below
+			pattern <= 0;							
+			row_addr_buf <= row_addr_gen;				// dupplicate temporal address -> buffer
+			col_addr_buf <= col_addr_gen;			
+			bank_addr_buf <= bank_addr_gen;
+                	row_addr_gen <= row_addr_gen + 1;			// move row address 1 by 1
+			if(row_addr_gen == 'd511) begin				// temporal row meet the half of bank
+          	       		if(col_addr_gen == 'd504) begin     		// temporal col address meet the half of bank
+			    	   	bank_addr_gen <= 2'b10;				// bank : 1st -> 2nd
+					col_addr_gen <= 0;					// col address = 0
+			    	   	if(bank_addr_gen == 2'b10) begin		// if bank address is already 2nd, reset all variables
+	   	                   		first <= 0;					
+                           			ce_gen <= 0;
+						test_end_reg <= 1;				// terminate test			   
+			    	       		state <= STOP;					// state => STOP, terminate read operation
+			    	   	end				   
 			    	end
 			    	else begin
-			    	    col_addr_gen <= col_addr_gen + 8;  	// col address != 504(last col)
+			    		col_addr_gen <= col_addr_gen + 8;  	// col address != 504(last col)
 			    		row_addr_gen <= 0;					// move next col line
 			    	end
-			    
-                end
-		    end
-		end
+                	end
+            	end
+	end
 
-		// state == STOP
+	// state == STOP
         STOP:
-            if(test == 0) begin		// test == 0, test mode X
-                state <= IDLE;		// state => IDLE
-            end       
-			else begin				// test == 1, test mode
-			    state <= STOP;		// hold the state STOP
-			end
+        	if(test == 0) begin		// test == 0, test mode X
+        		state <= IDLE;		// state => IDLE
+            	end       
+		else begin				// test == 1, test mode
+			state <= STOP;		// hold the state STOP
+		end
         endcase
     end
 end
@@ -191,66 +189,66 @@ always @ (posedge clk) begin
     else begin
         if(check) begin							// after write operation
             bank_addr_buf2 <= bank_addr_buf;	// dupplicate buf -> buf2
-			row_addr_buf2 <= row_addr_buf;	
-			col_addr_buf2 <= col_addr_buf;	
+		row_addr_buf2 <= row_addr_buf;	
+		col_addr_buf2 <= col_addr_buf;	
 			
-			if(pattern == (~data_r[7])) begin	// MSB(1st) of read data from Memory == pattern(0)?
-                fault_col_flag_reg[7] <= 1;		// if fault on 1st bit, set 1 to 1st bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[7] <= 0;		
-		    end
-
-			if(pattern == (~data_r[6])) begin	// 2nd bit of read data from Memory == pattern(0)?	
-                fault_col_flag_reg[6] <= 1;		// if fault on 2nd bit, set 1 to 2nd bit of fault_col_flag_reg			
-			end
-			else begin
-			    fault_col_flag_reg[6] <= 0;		
-		    end
-
-			if(pattern == (~data_r[5])) begin	// 3rd bit of read data from Memory == pattern(0)?
-                fault_col_flag_reg[5] <= 1;		// if fault on 3rd bit, set 1 to 3rd bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[5] <= 0;
-		    end
-
-			if(pattern == (~data_r[4])) begin	// 4th bit of read data from Memory == pattern(0)?
-                fault_col_flag_reg[4] <= 1;		// if fault on 4th bit, set 1 to 4th bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[4] <= 0;
-		    end
-
-			if(pattern == (~data_r[3])) begin	// 5th bit of read data from Memory == pattern(0)?	
-                fault_col_flag_reg[3] <= 1;		// if fault on 5th bit, set 1 to 5th bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[3] <= 0;
-		    end
-
-			if(pattern == (~data_r[2])) begin	// 6th bit of read data from Memory == pattern(0)?
-                fault_col_flag_reg[2] <= 1;		// if fault on 6th bit, set 1 to 6th bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[2] <= 0;
-		    end
-
-			if(pattern == (~data_r[1])) begin	// 7th bit of read data from Memory == pattern(0)?
-                fault_col_flag_reg[1] <= 1;		// if fault on 7th bit, set 1 to 7th bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[1] <= 0;
-		    end
-			
-			if(pattern == (~data_r[0])) begin	//  LSB(8th) of read data from Memory == pattern(0)?
-                fault_col_flag_reg[0] <= 1;		// if fault on 8th bit, set 1 to 8th bit of fault_col_flag_reg
-			end
-			else begin
-			    fault_col_flag_reg[0] <= 0;
-		    end
+		if(pattern == (~data_r[7])) begin	// MSB(1st) of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[7] <= 1;		// if fault on 1st bit, set 1 to 1st bit of fault_col_flag_reg
 		end
-	end        
+		else begin
+			fault_col_flag_reg[7] <= 0;		
+		end
+		
+		if(pattern == (~data_r[6])) begin	// 2nd bit of read data from Memory == pattern(0)?	
+                	fault_col_flag_reg[6] <= 1;		// if fault on 2nd bit, set 1 to 2nd bit of fault_col_flag_reg			
+		end
+		else begin
+			fault_col_flag_reg[6] <= 0;		
+		end
+		
+		if(pattern == (~data_r[5])) begin	// 3rd bit of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[5] <= 1;		// if fault on 3rd bit, set 1 to 3rd bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[5] <= 0;
+		end
+		
+		if(pattern == (~data_r[4])) begin	// 4th bit of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[4] <= 1;		// if fault on 4th bit, set 1 to 4th bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[4] <= 0;
+		end
+
+		if(pattern == (~data_r[3])) begin	// 5th bit of read data from Memory == pattern(0)?	
+                	fault_col_flag_reg[3] <= 1;		// if fault on 5th bit, set 1 to 5th bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[3] <= 0;
+		end
+
+		if(pattern == (~data_r[2])) begin	// 6th bit of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[2] <= 1;		// if fault on 6th bit, set 1 to 6th bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[2] <= 0;
+		end
+
+		if(pattern == (~data_r[1])) begin	// 7th bit of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[1] <= 1;		// if fault on 7th bit, set 1 to 7th bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[1] <= 0;
+		end
+			
+		if(pattern == (~data_r[0])) begin	//  LSB(8th) of read data from Memory == pattern(0)?
+                	fault_col_flag_reg[0] <= 1;		// if fault on 8th bit, set 1 to 8th bit of fault_col_flag_reg
+		end
+		else begin
+			fault_col_flag_reg[0] <= 0;
+		end
+        end
+    end        
 end
 endmodule                    
 
