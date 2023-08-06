@@ -1,6 +1,6 @@
 #include "CAM.h"
 Pcam pcam;
-Npcam npcam;
+Npcam npcam(pcam);
 
 int in_pcam(int r, int c) {
 	for (int i = 0; i < pcam.pcam_cnt(); i++) {
@@ -13,11 +13,11 @@ int in_pcam(int r, int c) {
 void set_npcam(int ptr, int r, int c, int b) {
 	// share row
 	if (r == pcam.r_addr(ptr)) {
-		npcam.set_npcam(ptr, 0, r, b);
+		npcam.set_npcam(ptr, 0, r, b, &pcam);
 	}
 	// share col
 	else if (c == pcam.c_addr(ptr)) {
-		npcam.set_npcam(ptr, 1, c, b);
+		npcam.set_npcam(ptr, 1, c, b, &pcam);
 	}
 }
 
@@ -32,7 +32,7 @@ void store_CAM() {
 			for (int i = 0; i < SIZE; i++) {
 				for (int j = 0; j < SIZE; j++) {
 					if (mem[k][i][j]) {
-						if ((pcam_ptr = in_pcam(i, j)) && !npcam.full())	// parallel access to PCAM
+						if ((pcam_ptr = in_pcam(i, j)))	// parallel access to PCAM
 							set_npcam(pcam_ptr - 1, i, j, k);
 						else
 							set_pcam(i, j, k);

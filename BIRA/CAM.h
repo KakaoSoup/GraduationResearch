@@ -42,6 +42,7 @@ private:
 	int row_offset;
 	int en_offset;
 	unsigned cam[PCAM];
+	friend class Npcam;
 public:
 	void reset() {
 		cnt = 0;
@@ -155,6 +156,7 @@ class Npcam : private Cam {
 private :
 	unsigned cam[NPCAM];
 	unsigned* camptr;
+	unsigned* pcam_offset;
 	int cnt;
 	int en_offset;
 	int ptr_offset;
@@ -162,6 +164,7 @@ private :
 	int ptr_mask;
 	int dscrpt_offset;
 	int addr_offset;
+
 public:
 	void reset() {
 		cnt = 0;
@@ -176,6 +179,17 @@ public:
 		ptr_len = static_cast<int>(round(log2(PCAM)));
 		ptr_mask = (1 << ptr_len) - 1;
 		en_offset = ptr_offset + ptr_len;
+		pcam_offset = nullptr;
+	}
+	Npcam(Pcam pcam) {
+		addr_offset = BANK;
+		reset();
+		dscrpt_offset = addr_offset + LEN;
+		ptr_offset = dscrpt_offset + 1;
+		ptr_len = static_cast<int>(round(log2(PCAM)));
+		ptr_mask = (1 << ptr_len) - 1;
+		en_offset = ptr_offset + ptr_len;
+		pcam_offset = &pcam.cam[0];
 	}
 	bool en(unsigned cam) {
 		return (cam >> en_offset) & 0x1;
@@ -186,32 +200,69 @@ public:
 		else
 			return false;
 	}
-	void set_npcam(int ptr, bool rc, int addr, int bnk) {
+	void set_npcam(int ptr, bool rc, int addr, int bnk, Pcam* pcam) {
 		camptr = &cam[0];
 		int Cnt = 0;
+		unsigned* pptr = nullptr;		// to mark must flag, if # fault > Rs or Cs
 		bool over = false;
+
 		if (cnt < NPCAM) {
-			for (int i = 0; i < cnt; i++) {
+			// find the nubmer of fault on same row or col
+			for (int i = 0; i < NPCAM; i++) {
+				// fault on same row or col detected
 				if (cam_ptr(*camptr) == ptr) {
 					if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
 						Cnt++;
 					}
 				}
-				if (Cnt >= R_SPARE-1 || Cnt >= C_SPARE-1) {
+				// if the number of fault over the spares -> break;
+				if (Cnt >= R_SPARE || Cnt >= C_SPARE) {
 					over = true;
+					// set the must flag bit of PCAM
+					switch (rc) {
+						// row same
+					case 0:
+						// same bank with pcam
+						if (pcam->b_addr(ptr) == bnk) {
+							cout << "0" << endl;
+							pcam->set_must_flag(ptr, 0);
+						}
+						// adjacent bank with pcam
+						else {
+							cout << "2" << endl;
+							pcam->set_must_flag(ptr, 2);
+						}
+						// col same
+					case 1:
+						// same bank with pcam
+						if (pcam->b_addr(ptr) == bnk) {
+							cout << "1" << endl;
+							pcam->set_must_flag(ptr, 1);
+						}
+						// adjacent bank with pcam
+						else {
+							cout << "3" << endl;
+							pcam->set_must_flag(ptr, 3);
+						}
+					}
 					break;
 				}
 				camptr++;
 			}
+			// # fault in row or col > # spares 
 			if (over) {
 				camptr = &cam[0];
-				for (int i = 0; i < cnt; i++) {
-					if (cam_ptr(*camptr) == ptr) {
-						if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
-							cout << "npcam, ";
-							binary_exp(*camptr);
-							cout << " is deleted." << endl;
-							*camptr = 0;
+				for (int i = 0; i < NPCAM; i++) {
+					// if NPCAM is not empty
+					if (en(*camptr)) {
+						if (cam_ptr(*camptr) == ptr) {
+							if (dsrpt(*camptr) == rc && bnk_addr(*camptr) == bnk) {
+								cout << "npcam, ";
+								binary_exp(*camptr);
+								cout << " is deleted." << endl;
+								*camptr = 0;
+								cnt--;
+							}
 						}
 					}
 					camptr++;
@@ -227,6 +278,8 @@ public:
 				cnt++;
 			}
 		}
+		else
+			cout << "# of NPCAM over the spares" << endl;
 	}
 	int npcam_cnt() {
 		return cnt;
