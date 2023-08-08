@@ -1,4 +1,6 @@
 #include "CAM.h"
+#include "analyzer.h"
+
 Pcam pcam;
 Npcam npcam(pcam);
 
@@ -62,9 +64,14 @@ void store_CAM() {
 	}
 }
 
+void fault_analysis() {
+
+}
+
 void BIRA() {
 	store_CAM();			// Fault collection
 	pcam.show_pcam();
 	npcam.show_npcam();
 
+	//fault_analysis();
 }

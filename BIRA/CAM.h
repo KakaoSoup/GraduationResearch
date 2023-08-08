@@ -43,6 +43,7 @@ private:
 	int en_offset;
 	unsigned cam[PCAM];
 	friend class Npcam;
+	friend class Block;
 public:
 	void reset() {
 		cnt = 0;
@@ -169,7 +170,7 @@ private :
 	int ptr_mask;
 	int dscrpt_offset;
 	int addr_offset;
-
+	friend class Block;
 public:
 	void reset() {
 		cnt = 0;
