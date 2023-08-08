@@ -13,11 +13,11 @@ int in_pcam(int r, int c) {
 void set_npcam(int ptr, int r, int c, int b) {
 	// share row
 	if (r == pcam.r_addr(ptr)) {
-		npcam.set_npcam(ptr, 0, r, b, &pcam);
+		npcam.set_npcam(ptr, 0, c, b, &pcam);
 	}
 	// share col
 	else if (c == pcam.c_addr(ptr)) {
-		npcam.set_npcam(ptr, 1, c, b, &pcam);
+		npcam.set_npcam(ptr, 1, r, b, &pcam);
 	}
 }
 
@@ -32,10 +32,11 @@ void store_CAM() {
 			for (int i = 0; i < SIZE; i++) {
 				for (int j = 0; j < SIZE; j++) {
 					if (mem[k][i][j]) {
-						if ((pcam_ptr = in_pcam(i, j)))	// parallel access to PCAM
-							set_npcam(pcam_ptr - 1, i, j, k);
+						if ((pcam_ptr = in_pcam(i, j))) { // parallel access to PCAM
+							set_npcam(pcam_ptr - 1, i, j, k+1);
+						}
 						else
-							set_pcam(i, j, k);
+							set_pcam(i, j, k+1);
 					}
 					else
 						continue;

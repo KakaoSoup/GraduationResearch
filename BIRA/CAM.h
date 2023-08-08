@@ -74,12 +74,16 @@ public:
 		switch (f) {
 		case 0:	// row must
 			cam[i] |= 0x8;
+			break;
 		case 1:	// col must
 			cam[i] |= 0x4;
+			break;
 		case 2: // adj row must
 			cam[i] |= 0x2;
+			break;
 		case 3: // adj col must
 			cam[i] |= 0x1;
+			break;
 		}
 	}
 	int pcam_cnt() {
@@ -134,6 +138,7 @@ public:
 	void show_pcam() {
 		cout << endl;
 		int cnt = pcam_cnt();
+		cout << "enable bit / row_addr / col_addr / block_addr / must flag" << endl;
 		for (int i = 0; i < cnt; i++) {
 			cout << '#' << i << " pcam : ";
 			binary_exp(show_ith_cam(i));
@@ -147,8 +152,8 @@ public:
 	enable flag :	1 bit
 	Pivot CAM ptr :	#row + col spares
 	R/C descripotr:	1 bit
-	r or c addr :	10 bits
-	bank addr :	2 bits
+	r or c addr :	3 bits
+	bank addr :		2 bits
 	1 + 4 + 1 + 10 + 2 = 18 bits
 */
 
@@ -176,7 +181,7 @@ public:
 		reset();
 		dscrpt_offset = addr_offset + LEN;
 		ptr_offset = dscrpt_offset + 1;
-		ptr_len = static_cast<int>(round(log2(PCAM)));
+		ptr_len = static_cast<int>(ceil(log2(PCAM)));
 		ptr_mask = (1 << ptr_len) - 1;
 		en_offset = ptr_offset + ptr_len;
 		pcam_offset = nullptr;
@@ -186,7 +191,7 @@ public:
 		reset();
 		dscrpt_offset = addr_offset + LEN;
 		ptr_offset = dscrpt_offset + 1;
-		ptr_len = static_cast<int>(round(log2(PCAM)));
+		ptr_len = static_cast<int>(ceil(log2(PCAM)));
 		ptr_mask = (1 << ptr_len) - 1;
 		en_offset = ptr_offset + ptr_len;
 		pcam_offset = &pcam.cam[0];
@@ -216,34 +221,32 @@ public:
 					}
 				}
 				// if the number of fault over the spares -> break;
-				if (Cnt >= R_SPARE || Cnt >= C_SPARE) {
+				if (Cnt >= R_SPARE-1 || Cnt >= C_SPARE-1) {
 					over = true;
 					// set the must flag bit of PCAM
 					switch (rc) {
-						// row same
+					// row same
 					case 0:
 						// same bank with pcam
 						if (pcam->b_addr(ptr) == bnk) {
-							cout << "0" << endl;
 							pcam->set_must_flag(ptr, 0);
 						}
 						// adjacent bank with pcam
 						else {
-							cout << "2" << endl;
 							pcam->set_must_flag(ptr, 2);
 						}
-						// col same
+						break;
+					// col same
 					case 1:
 						// same bank with pcam
 						if (pcam->b_addr(ptr) == bnk) {
-							cout << "1" << endl;
 							pcam->set_must_flag(ptr, 1);
 						}
 						// adjacent bank with pcam
 						else {
-							cout << "3" << endl;
 							pcam->set_must_flag(ptr, 3);
 						}
+						break;
 					}
 					break;
 				}
@@ -269,12 +272,17 @@ public:
 				}
 			}
 			else {
+				camptr = &cam[0];
+				for (int i = 0; i < NPCAM; i++) {
+					if (!en(*camptr))
+						break;
+					camptr++;
+				}
 				*camptr |= 1 << en_offset;
 				*camptr |= (ptr & ptr_mask) << ptr_offset;
 				*camptr |= rc << dscrpt_offset;
 				*camptr |= (addr & mask) << addr_offset;
 				*camptr |= bnk & bnk_mask;
-				camptr++;
 				cnt++;
 			}
 		}
@@ -332,10 +340,15 @@ public:
 	}
 	void show_npcam() {
 		int cnt = npcam_cnt();
-		for (int i = 0; i < cnt; i++) {
-			cout << '#' << i << " npcam : ";
-			binary_exp(show_ith_cam(i));
-			cout << endl;
+		unsigned* ptr = &cam[0];
+		cout << "enable bit / ptr / rc descriptor / addr / bank addr" << endl;
+		for (int i = 0; i < NPCAM; i++) {
+			if (en(*ptr)) {
+				cout << '#' << i << " npcam : ";
+				binary_exp(show_ith_cam(i));
+				cout << endl;
+			}
+			ptr++;
 		}
 		cout << endl;
 	}
