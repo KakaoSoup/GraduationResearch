@@ -11,6 +11,22 @@ int in_pcam(int r, int c) {
 }
 
 void set_npcam(int ptr, int r, int c, int b) {
+	unsigned flag = 0;
+	if (flag = pcam.must_flag(ptr)) {
+		cout << "must flag is set" << endl;
+		if (b == pcam.b_addr(ptr)) {
+			if (flag == 0x8 && r == pcam.r_addr(ptr))
+				return;
+			else if (flag = 0x4 && c == pcam.c_addr(ptr))
+				return;
+		}
+		else {
+			if (flag == 0x2 && r == pcam.r_addr(ptr))
+				return;
+			else if (flag = 0x1 && c == pcam.c_addr(ptr))
+				return;
+		}
+	}
 	// share row
 	if (r == pcam.r_addr(ptr)) {
 		npcam.set_npcam(ptr, 0, c, b, &pcam);
