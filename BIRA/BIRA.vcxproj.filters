@@ -35,6 +35,9 @@
     <ClInclude Include="spare_struct.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="analyzer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="input.txt" />

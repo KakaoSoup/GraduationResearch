@@ -132,6 +132,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="analyzer.h" />
     <ClInclude Include="CAM.h" />
     <ClInclude Include="header.h" />
     <ClInclude Include="spare_struct.h" />

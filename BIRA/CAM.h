@@ -126,6 +126,7 @@ public:
 			else {
 				if ((cnt == en_offset || cnt == row_offset || cnt == col_offset || cnt == bnk_offset) && cnt != first)
 					cout << "_";
+				
 				if (bin & pivot)
 					cout << 1;
 				else

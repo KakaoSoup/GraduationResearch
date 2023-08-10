@@ -3,8 +3,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <random>
-#define LEN 3				// length of row, col address bits
-#define SIZE 1 << LEN		// length of bits along the row or col side of memory
+#define SIZE 6				// length of bank
+#define LEN	static_cast<int>(ceil(log2(SIZE)))		// length of row, col address bits
 #define FAULT 10			// # of total faults
 #define BANK 2				// # of banks
 using namespace std;

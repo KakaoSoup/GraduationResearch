@@ -1,7 +1,7 @@
 #ifndef SPARE_STRUCT
 #define SPARE_STRUCT
 #include <iostream>
-#define R_SPARE 3
+#define R_SPARE 2
 #define C_SPARE 3
 
 class Spare {

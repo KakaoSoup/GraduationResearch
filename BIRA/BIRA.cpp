@@ -3,6 +3,8 @@
 
 Pcam pcam;
 Npcam npcam(pcam);
+Block row_part[NPCAM];
+Block col_part[NPCAM];
 
 int in_pcam(int r, int c) {
 	for (int i = 0; i < pcam.pcam_cnt(); i++) {
@@ -64,14 +66,39 @@ void store_CAM() {
 	}
 }
 
-void fault_analysis() {
+void set_analyzer(bool* dsss, bool* rlss, bool* clss, bool* nonpivot_cover_info) {
+	for (int i = 0; i < NPCAM; i++) {
+		if (npcam.dsrpt(npcam.show_ith_cam(i)) == ROW)
+			row_part[i].set(ROW, dsss, rlss, npcam.show_ith_cam(i), &pcam, &npcam, true);
+		else
+			col_part[i].set(COL, dsss, clss, npcam.show_ith_cam(i), &pcam, &npcam, true);
+		nonpivot_cover_info[i] = row_part[i].result() || col_part[i].result();
+		cout << "nonpivot_cover_info[" << i << "] : " << nonpivot_cover_info[i] << endl;
+	}
+}
 
+
+void fault_analysis() {
+	bool DSSS[8][R_SPARE + C_SPARE] = {
+		{0, 0, 0, 1, 1},
+		{0, 0, 0, 1, 1},
+		{0, 0, 1, 1, 0},
+		{0, 0, 1, 1, 0},
+		{1, 0, 1, 0, 1},
+		{1, 0, 1, 0, 1},
+		{1, 1, 0, 0, 0},
+		{1, 1, 0, 0, 0}
+	};
+	bool RLSS[R_SPARE];
+	bool CLSS[C_SPARE];
+	bool nonpivot_cover_info[NPCAM];
+
+	set_analyzer(DSSS[0], RLSS, CLSS, nonpivot_cover_info);
 }
 
 void BIRA() {
 	store_CAM();			// Fault collection
 	pcam.show_pcam();
 	npcam.show_npcam();
-
-	//fault_analysis();
+	fault_analysis();
 }
