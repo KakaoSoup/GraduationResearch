@@ -118,7 +118,7 @@ begin
         	if(first == 0) begin    						// with first of read operation
 			row_addr_gen <= 0;							// reset temporal row address
 			col_addr_gen <= 0;							// reset temporal col address
-	            	first <= 1;									// set first 1 to skip current loop
+	        first <= 1;									// set first 1 to skip current loop
 			bank_addr_gen <= 2'b01;						// set temporal bank : 1st
 		end
             	else begin
