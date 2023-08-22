@@ -1,7 +1,22 @@
 #include "header.h"
 
+struct Fault {
+	int bank;			// bank address
+	int row_addr;		// row address
+	int col_addr;		// col address
+};
+
+Fault faults[FAULT];
+
+static void init() {
+	// reset signals and variables
+	early_term = false;
+	memset(mem, 0, sizeof(mem));
+	memset(faults, 0, sizeof(faults));
+}
+
 // 1D fault address -> 2D fault address
-void fault_arrange() {
+static void fault_arrange() {
 	for (int i = 0; i < FAULT; i++) {
 		// bank0
 		if (faults[i].bank & 0x1) {
@@ -15,8 +30,8 @@ void fault_arrange() {
 }
 
 // to mark on Memory with the 2D fault address
-void fault_addr_convert(int* fault_addr) {
-	int msb = 1 << (LEN * BANK);			// msb whether bank 1 (01) or bank 2 (10)
+static void fault_addr_convert(int* fault_addr) {
+	int msb = 1 << (LEN * BNK);			// msb whether bank 1 (01) or bank 2 (10)
 	int mask = SIZE;						
 	mask--;									// mask = 111...111 with legth of LEN
 	for (int i = 0; i < FAULT; i++) {
@@ -35,7 +50,7 @@ void fault_addr_convert(int* fault_addr) {
 	}
 }
 
-void print_mem() {
+static void print_mem() {
 	cout << "\tbank1:" << "\t\t\t\t\t" << "bank2:" << endl;
 	for (int i = 0; i < SIZE; i++) {
 		// print bank 1
@@ -53,15 +68,14 @@ void print_mem() {
 	cout << endl;
 }
 
-void show_faults() {
-	cout << "fault address of " << int(SIZE) << " X " << int(SIZE) << ", " << BANK << " memory bank" << endl << endl << "\tbank\trow\tcol" << endl;
+static void show_faults() {
+	cout << "fault address of " << int(SIZE) << " X " << int(SIZE) << ", " << BNK << " memory bank" << endl << endl << "\tbank\trow\tcol" << endl;
 	for (int i = 0; i < FAULT; i++) {
 		cout << '#' << i + 1 << " :" << '\t' << faults[i].bank << ",\t" << faults[i].row_addr << ",\t" << faults[i].col_addr << endl;
 	}
 	cout << endl;
 }
-
-void generate_fault() {
+static void generate_fault() {
 	int fault_addr[FAULT];
 	int cnt = 0;
 	int randnum = 0;
@@ -70,7 +84,7 @@ void generate_fault() {
 	// generate random number with 0 ~ 1111....1111 = bank row * bank col * #bank : (LEN + LEN + 1) 1's
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> dis(0, (SIZE * SIZE * BANK) - 1);
+	std::uniform_int_distribution<int> dis(0, (SIZE * SIZE * BNK) - 1);
 	memset(fault_addr, 0, sizeof(fault_addr));
 
 	// generate random number (#randnum = FAULT(# total fault))
@@ -91,12 +105,19 @@ void generate_fault() {
 }
 
 
-void read_fault_file() {
+static void read_fault_file() {
 	for (int i = 0; i < SIZE; i++) {
-		for (int k = 0; k < BANK; k++) {
+		for (int k = 0; k < BNK; k++) {
 			for (int j = 0; j < SIZE; j++) {
 				cin >> mem[k][i][j];
 			}
 		}
 	}
+}
+
+extern void fault_generation() {
+	init();
+	freopen("input.txt", "r", stdin);		// read 'input.txt' file
+	read_fault_file();
+	print_mem();
 }

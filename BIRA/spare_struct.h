@@ -1,22 +1,18 @@
 #ifndef SPARE_STRUCT
 #define SPARE_STRUCT
 #include <iostream>
+#include "header.h"
 #define S1		1
 #define S2		2
 #define S3		3
-#define R_SPARE	4
 
-/*
-	struct1 : Sslc 2 + 2 / Sslr 2 + 2
-	struct2 : Sslc 1 + 1 / Sslr 2 + 2 / Sscc 2
-	struct3 : Sslc 1 + 1 / Sslr 1 + 1 / Sscc 2 / Sdgr 1
+extern int struct_type;
 
-	Sslr	2	2	1	
-	Sslc	2	1	1
-	Sscc		1	1
-	Sdgr			1
-*/
-
+struct Spare {
+	int addr;
+	int bnk;
+	bool rc;
+};
 
 struct Bank {
 	int spares[4];
@@ -24,6 +20,18 @@ struct Bank {
 		memset(spares, 0, sizeof(spares));
 	}
 };
+
+/*
+	struct1 : Sslc 2 + 2 / Sslr 2 + 2
+	struct2 : Sslc 1 + 1 / Sslr 2 + 2 / Sscc 2
+	struct3 : Sslc 1 + 1 / Sslr 1 + 1 / Sscc 2 / Sdgr 1
+
+	Sslr	2	2	1
+	Sslc	2	1	1
+	Sscc		1	1
+	Sdgr			1
+*/
+
 
 // spare : range, direction
 struct SpareStruct {
