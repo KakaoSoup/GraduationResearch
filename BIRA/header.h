@@ -3,9 +3,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <random>
-#define SIZE 6				// length of bank
+#define SIZE 8				// length of bank
 #define LEN	static_cast<int>(ceil(log2(SIZE)))		// length of row, col address bits
-#define FAULT 10			// # of total faults
+#define FAULT 20			// # of total faults
 #define BNK 2				// # of banks
 #define ROW 1
 #define COL 0

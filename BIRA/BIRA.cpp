@@ -32,7 +32,7 @@ void store_CAM() {
 			for (int i = 0; i < SIZE; i++) {
 				for (int j = 0; j < SIZE; j++) {
 					if (mem[k][i][j])
-						cam.setCam(i, j, k);
+						cam.setCam(i, j, k+1);
 				}
 			}
 		}
@@ -43,12 +43,15 @@ void store_CAM() {
 	}
 }
 
-extern void singal_generate() {
+void singal_generate() {
 	generator.signal_generate();
+}
+
+void show_signals() {
 	generator.show_dsss();
 	cout << ' ';
 	generator.show_rlss();
-	cout << " is valid? : " << signal_valid() << endl;
+	cout << " is valid? : " << signal_valid();
 }
 
 
@@ -56,8 +59,14 @@ void BIRA() {
 	store_CAM();			// Fault collection
 	cam.showPcam();
 	cam.showNpcam();
-	for (int i = 0; i < 70; i++) {
+	for (int i = 0; i < 70*4; i++) {
 		singal_generate();
 		spare_allocation();
+		if (signal_valid()) {
+			show_signals();
+			cout << '\t';
+			show_nonpivot_cover();
+			cout << '\n';
+		}
 	}
 }

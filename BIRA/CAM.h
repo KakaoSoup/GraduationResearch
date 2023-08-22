@@ -89,15 +89,25 @@ public:
 			break;
 		}
 	}
-	void setNpcam(const int ptr, const bool rc, const int addr, const int bnk) {
-		int cnt = 0;
+	void setNpcam(const int ptr, const bool rowcol, const int addr, const int bnk) {
+		int cnt[3] = { 0 };
 		bool find = false;
 		Npcam* nptr = nullptr;
 	
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].en) {
-				if (npcam[i].pcam_ptr == ptr && npcam[i].rc == rc) {
-					cnt++;
+				if (npcam[i].pcam_ptr == ptr && npcam[i].rc == rowcol) {
+					// npcam share with row
+					if (!rowcol == ROW) {
+						if (pcam[ptr].bnk_addr == bnk)
+							cnt[0]++;
+						else
+							cnt[2]++;
+					}
+					// npcam share with col
+					else {
+						cnt[1]++;
+					}
 				}
 			}
 			else if (!find) {
@@ -105,14 +115,16 @@ public:
 				find = true;
 			}
 		}
-		if (cnt > C_SPARE - 1 && rc == COL) {
-			if (pcam[ptr].bnk_addr == bnk)
-				set_flag(ptr, 1);
-			else
-				set_flag(ptr, 3);
+
+		if (cnt[0] >= C_SPARE - 1) {
+			set_flag(ptr, 1);
 			return;
 		}
-		if (cnt > R_SPARE - 1 && rc == ROW) {
+		else if (cnt[2] >= C_SPARE) {
+			set_flag(ptr, 3);
+			return;
+		}
+		else if (cnt[1] >= R_SPARE -1) {
 			set_flag(ptr, 2);
 			return;
 		}
@@ -120,10 +132,12 @@ public:
 		if (nptr != nullptr) {
 			nptr->en = true;
 			nptr->pcam_ptr = ptr;
-			nptr->rc = rc;
+			nptr->rc = rowcol;
 			nptr->addr = addr;
 			nptr->bnk = bnk;
 		}
+		else
+			cout << "NPCAM is full!" << endl;
 	}
 	void setCam(const int row, const int col, const int bnk) {
 		for (int idx = 0; idx < this->pcam_cnt; idx++) {
@@ -131,7 +145,7 @@ public:
 				setNpcam(idx, COL, col, bnk);
 				return;
 			}
-			else if (pcam[idx].col_addr == col) {
+			else if (pcam[idx].col_addr == col && pcam[idx].bnk_addr == bnk) {
 				setNpcam(idx, ROW, row, bnk);
 				return;
 			}
@@ -143,9 +157,11 @@ public:
 		pcamCnt = this->pcam_cnt;
 	}
 	void showPcam() {
+		int idx = 0;
 		cout << "PCAM(en/row/col/bnk/must) : " << endl;
 		for (int i = 0; i < this->pcam_cnt; i++) {
 			if (pcam[i].en) {
+				cout << '#' << idx++ << '\t';
 				cout << pcam[i].en << '_';
 				cout << pcam[i].row_addr << '_';
 				cout << pcam[i].col_addr << '_';
@@ -157,9 +173,11 @@ public:
 		cout << endl;
 	}
 	void showNpcam() {
+		int idx = 0;
 		cout << "NPCAM(en/ptr/rc/addr/bnk) : " << endl;;
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].en) {
+				cout << '#' << idx++ << '\t';
 				cout << npcam[i].en << '_';
 				cout << npcam[i].pcam_ptr << '_';
 				cout << npcam[i].rc << '_';

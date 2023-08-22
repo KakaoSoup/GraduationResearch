@@ -8,6 +8,7 @@ extern int uncover_nonpivot_addr[NPCAM_SIZE];
 extern Spare pivot_cover[R_SPARE + C_SPARE];
 extern bool nonpivot_cover_info[NPCAM_SIZE];
 extern void spare_allocation();
+extern void show_nonpivot_cover();
 
 class SpareAllocationAnalyzer {
 private:
@@ -21,13 +22,18 @@ public:
 		init();
 	}
 	void set_repair_cand() {
-		for (int i = 0; i < R_SPARE; i++) {
-			RRx[i].addr = pivot_cover[i].addr;
-			RRx[i].bnk = pivot_cover[i].bnk;
-		}
-		for (int i = R_SPARE; i < C_SPARE; i++) {
-			RCx[i - R_SPARE].addr = pivot_cover[i].addr;
-			RCx[i - R_SPARE].bnk = pivot_cover[i].bnk;
+		int cidx = 0, ridx = 0;
+		for (int i = 0; i < R_SPARE + C_SPARE; i++) {
+			if (pivot_cover[i].alloc) {
+				if (pivot_cover[i].rc == ROW) {
+					RRx[ridx].addr = pivot_cover[i].addr;
+					RRx[ridx++].bnk = pivot_cover[i].bnk;
+				}
+				else if (pivot_cover[i].rc == COL) {
+					RCx[cidx].addr = pivot_cover[i].addr;
+					RCx[cidx++].bnk = pivot_cover[i].bnk;
+				}
+			}
 		}
 	}
 	bool RAC(int RRx_addr, int NPr_addr, int RRx_bnk, int NPr_bnk, bool RLSS) {
@@ -61,13 +67,17 @@ static void init() {
 	memset(nonpivot_cover_info, false, sizeof(nonpivot_cover_info));
 }
 
-static void show_nonpivot_cover() {
+extern void show_nonpivot_cover() {
+	cout << "nonpivot_cover_info : ";
 	for (int i = 0; i < NPCAM_SIZE; i++) {
-		cout << nonpivot_cover_info[i];
+		if(npcam[i].en)
+			cout << nonpivot_cover_info[i];
 	}
 }
 
 void spare_allocation() {
+	if (!signal_valid())
+		return;
 	init();
 	SpareAllocationAnalyzer analyzer;
 	for (int i = 0; i < pcamCnt; i++) {
@@ -85,9 +95,6 @@ void spare_allocation() {
 	analyzer.set_repair_cand();
 	analyzer.comapare_row(npcam);
 	analyzer.comapare_col(npcam);
-	cout << "nonpivot_cover_info : ";
-	show_nonpivot_cover();
-	cout << endl;
 }
 
 #endif // !__SPAREALLOCATIONANALYZER_H

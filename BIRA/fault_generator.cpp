@@ -119,5 +119,8 @@ extern void fault_generation() {
 	init();
 	freopen("input.txt", "r", stdin);		// read 'input.txt' file
 	read_fault_file();
+	//generate_fault();
+	//show_faults();
+
 	print_mem();
 }
