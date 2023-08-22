@@ -6,7 +6,11 @@
 #define SIZE 6				// length of bank
 #define LEN	static_cast<int>(ceil(log2(SIZE)))		// length of row, col address bits
 #define FAULT 10			// # of total faults
-#define BANK 2				// # of banks
+#define BNK 2				// # of banks
+#define ROW 0
+#define COL 1
+#define PCAM_SIZE 8
+#define NPCAM_SIZE 30
 using namespace std;
 
 struct Fault {
