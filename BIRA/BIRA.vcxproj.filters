@@ -44,8 +44,12 @@
     <ClInclude Include="spare_allocation_analyzer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="redundant_analyzer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="input.txt" />
+    <Text Include="cam.txt" />
   </ItemGroup>
 </Project>

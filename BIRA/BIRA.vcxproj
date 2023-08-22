@@ -134,12 +134,14 @@
   <ItemGroup>
     <ClInclude Include="CAM.h" />
     <ClInclude Include="header.h" />
+    <ClInclude Include="redundant_analyzer.h" />
     <ClInclude Include="signal_validity_checker.h" />
     <ClInclude Include="singal_generator.h" />
     <ClInclude Include="spare_allocation_analyzer.h" />
     <ClInclude Include="spare_struct.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="cam.txt" />
     <Text Include="input.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

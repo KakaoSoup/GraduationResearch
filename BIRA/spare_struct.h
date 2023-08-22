@@ -12,6 +12,7 @@ struct Spare {
 	int addr;
 	int bnk;
 	bool rc;
+	bool alloc;
 };
 
 struct Bank {

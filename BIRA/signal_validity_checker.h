@@ -16,6 +16,8 @@ bool signal_valid() {
 	int wide_idx = -1;
 	bool temp = 0;
 	bool fail = 0;
+	memset(unused_spare, true, sizeof(unused_spare));
+	memset(uncover_must_pivot, false, sizeof(uncover_must_pivot));
 
 	for (int i = 0; i < pcamCnt; i++) {
 		if (DSSS[i] == ROW) {
@@ -28,6 +30,7 @@ bool signal_valid() {
 				if (DSSS[i] != ROW) {
 					uncover_must_pivot[i] = true;
 					fail = true;
+					continue;
 				}
 				//cnt_row[pivot_block[i] - 1]++;
 				switch (struct_type) {
@@ -93,6 +96,7 @@ bool signal_valid() {
 				if (DSSS[i] != COL) {
 					uncover_must_pivot[i] = true;
 					fail = true;
+					continue;
 				}
 				//cnt_col[pivot_block[i] - 1]++;
 				switch (struct_type) {
@@ -174,13 +178,17 @@ bool signal_valid() {
 				if (DSSS[i] != ROW) {
 					uncover_must_pivot[i] = true;
 					fail = true;
+					continue;
 				}
 				switch (struct_type) {
 				case S1:
 					if (pivot_block[i] == 1) {
-						if (unused_spare[1])		unused_spare[1] = false;
-						else if (unused_spare[3])	unused_spare[3] = false;
-						else						fail = true;
+						if (unused_spare[1])		
+							unused_spare[1] = false;
+						else if (unused_spare[3])	
+							unused_spare[3] = false;
+						else						
+							fail = true;
 					}
 					else if (pivot_block[i] == 2) {
 						if (unused_spare[0])

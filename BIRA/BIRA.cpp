@@ -22,8 +22,7 @@ bool unused_spare[R_SPARE + C_SPARE] = { 1 };
 
 // spare allocation analyzer
 int uncover_nonpivot_addr[NPCAM_SIZE];
-Spare pivot_row_cover[R_SPARE];
-Spare pivot_col_cover[C_SPARE];
+Spare pivot_cover[R_SPARE + C_SPARE];
 bool nonpivot_cover_info[NPCAM_SIZE];
 
 void store_CAM() {
