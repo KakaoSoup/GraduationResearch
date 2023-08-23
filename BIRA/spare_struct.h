@@ -2,11 +2,6 @@
 #define SPARE_STRUCT
 #include <iostream>
 #include "header.h"
-#define S1		1
-#define S2		2
-#define S3		3
-
-extern int struct_type;
 
 struct Spare {
 	int addr;

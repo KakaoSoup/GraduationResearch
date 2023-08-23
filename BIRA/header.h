@@ -9,6 +9,9 @@
 #define BNK 2				// # of banks
 #define ROW 1
 #define COL 0
+#define S1		1
+#define S2		2
+#define S3		3
 #define R_SPARE	4
 #define C_SPARE 4
 #define PCAM_SIZE (R_SPARE + C_SPARE)
@@ -18,6 +21,8 @@ using namespace std;
 
 extern bool mem[BNK][SIZE][SIZE];		// memory fault map
 extern bool early_term;					// early terminate signal
+extern const int struct_type;
+extern const int sig_len;
 
 // function
 extern void BIRA();

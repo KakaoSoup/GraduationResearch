@@ -14,52 +14,73 @@ class SpareAllocationAnalyzer {
 private:
 	Spare RRx[R_SPARE];
 	Spare RCx[C_SPARE];
+	int row_len;
 public:
 	void init() {
-		memset(nonpivot_cover_info, false, sizeof(nonpivot_cover_info));
+		memset(RRx, 0, sizeof(RRx));
+		memset(RCx, 0, sizeof(RCx));
+		
 	}
 	SpareAllocationAnalyzer() {
+		row_len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
 		init();
 	}
 	void set_repair_cand() {
 		int cidx = 0, ridx = 0;
-		for (int i = 0; i < R_SPARE + C_SPARE; i++) {
-			if (pivot_cover[i].alloc) {
-				if (pivot_cover[i].rc == ROW) {
-					RRx[ridx].addr = pivot_cover[i].addr;
-					RRx[ridx++].bnk = pivot_cover[i].bnk;
-				}
-				else if (pivot_cover[i].rc == COL) {
-					RCx[cidx].addr = pivot_cover[i].addr;
-					RCx[cidx++].bnk = pivot_cover[i].bnk;
-				}
+		for (int i = 0; i < sig_len; i++) {
+			if (DSSS[i] == ROW) {
+				RRx[ridx].alloc = true;
+				RRx[ridx].addr = pcam[i].row_addr;
+				RRx[ridx++].bnk = pcam[i].bnk_addr;
+			}
+			else if (DSSS[i] == COL) {
+				RCx[cidx].alloc = true;
+				RCx[cidx].addr = pcam[i].col_addr;
+				RCx[cidx++].bnk = pcam[i].bnk_addr;
 			}
 		}
 	}
-	bool RAC(int RRx_addr, int NPr_addr, int RRx_bnk, int NPr_bnk, bool RLSS) {
-		bool result = 0;
-		result = (RRx_addr != NPr_addr) ? false : (RLSS || (RRx_bnk == NPr_bnk));
-		return result;
+	bool RAC(const int RRx_addr, const int NPr_addr, const int RRx_bnk, const int NPr_bnk, const bool RLSS) {
+		return (RRx_addr != NPr_addr) ? false : (RLSS || (RRx_bnk == NPr_bnk));
 	}
-	bool CAC(int RRx_addr, int NPr_addr, int RRx_bnk, int NPr_bnk) {
-		bool result = 0;
-		result = (RRx_addr != NPr_addr) ? false : (RRx_bnk != NPr_bnk) ? false : true;
-		return result;
+	bool CAC(const int RCx_addr, const int NPc_addr, const int RCx_bnk, const int NPc_bnk) {
+		return (RCx_addr != NPc_addr) ? false : (RCx_bnk != NPc_bnk) ? false : true;
 	}
 	void comapare_row(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
-			if (npcam[i].rc == ROW)
-				for (int j = 0; j < R_SPARE; j++)
+			if (npcam[i].rc == COL) {
+				for (int j = 0; j < row_len; j++)
+					nonpivot_cover_info[i] |= RAC(RRx[j].addr, pcam[npcam[i].pcam_ptr].row_addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
+			}
+			else {
+				for (int j = 0; j < row_len; j++)
 					nonpivot_cover_info[i] |= RAC(RRx[j].addr, npcam[i].addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
+			}
 		}
 	}
 	void comapare_col(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
-			if (npcam[i].rc == COL)
+			if (npcam[i].rc == ROW) {
+				for (int j = 0; j < C_SPARE; j++)
+					nonpivot_cover_info[i] |= CAC(RCx[j].addr, pcam[npcam[i].pcam_ptr].col_addr, RCx[j].bnk, npcam[i].bnk);
+			}
+			else {
 				for (int j = 0; j < C_SPARE; j++)
 					nonpivot_cover_info[i] |= CAC(RCx[j].addr, npcam[i].addr, RCx[j].bnk, npcam[i].bnk);
+			}
 		}
 	}
+	void show_repaircand() {
+		cout << "Row Repair Candidate :" << endl;
+		for (int i = 0; i < R_SPARE; i++) {
+			printf("RRx[%d](addr, bnk) : %d, %d\n", i, RRx[i].addr, RRx[i].bnk);
+		}
+		cout << "Col Repair Candidate :" << endl;
+		for (int i = 0; i < C_SPARE; i++) {
+			printf("RCx[%d](addr, bnk) : %d, %d\n", i, RCx[i].addr, RCx[i].bnk);
+		}
+	}
+
 };
 
 static void init() {
@@ -68,10 +89,12 @@ static void init() {
 }
 
 extern void show_nonpivot_cover() {
-	cout << "nonpivot_cover_info : ";
 	for (int i = 0; i < NPCAM_SIZE; i++) {
-		if(npcam[i].en)
+		if (npcam[i].en) {
+			cout << endl;
+			cout << "nonpivot_cover_info " << i << " : ";
 			cout << nonpivot_cover_info[i];
+		}
 	}
 }
 
@@ -93,6 +116,7 @@ void spare_allocation() {
 		pivot_cover[i].alloc = true;
 	}
 	analyzer.set_repair_cand();
+	analyzer.show_repaircand();
 	analyzer.comapare_row(npcam);
 	analyzer.comapare_col(npcam);
 }

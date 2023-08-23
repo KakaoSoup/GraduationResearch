@@ -20,6 +20,7 @@ bool signal_valid() {
 	memset(uncover_must_pivot, false, sizeof(uncover_must_pivot));
 
 	for (int i = 0; i < pcamCnt; i++) {
+		fail = false;
 		if (DSSS[i] == ROW) {
 			if (RLSS[rlss_idx++])
 				wide_idx = i;
@@ -28,8 +29,8 @@ bool signal_valid() {
 			switch (must_repair[i]) {
 			case 0x4:	// row must
 				if (DSSS[i] != ROW) {
-					uncover_must_pivot[i] = true;
 					fail = true;
+					uncover_must_pivot[i] = true;
 					continue;
 				}
 				//cnt_row[pivot_block[i] - 1]++;
@@ -94,8 +95,8 @@ bool signal_valid() {
 				break;
 			case 0x2:	// col must
 				if (DSSS[i] != COL) {
-					uncover_must_pivot[i] = true;
 					fail = true;
+					uncover_must_pivot[i] = true;
 					continue;
 				}
 				//cnt_col[pivot_block[i] - 1]++;
@@ -176,8 +177,8 @@ bool signal_valid() {
 				//temp = pivot_block[i] - 1;
 				//cnt_row[!temp]++;
 				if (DSSS[i] != ROW) {
-					uncover_must_pivot[i] = true;
 					fail = true;
+					uncover_must_pivot[i] = true;
 					continue;
 				}
 				switch (struct_type) {
@@ -216,11 +217,12 @@ bool signal_valid() {
 						else
 							fail = true;
 					}
+					break;
 				case S3:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[2])
 							unused_spare[2] = false;
-						if (unused_spare[1])
+						else if (unused_spare[1])
 							unused_spare[1] = false;
 						else
 							fail = true;
@@ -242,9 +244,12 @@ bool signal_valid() {
 				break;
 			}
 		}
+		if(fail)
+			uncover_must_pivot[i] = true;
 	}
-	if (fail)
+	if (fail) {
 		return false;
+	}
 	return true;
 }
 

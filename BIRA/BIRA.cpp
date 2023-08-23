@@ -1,10 +1,13 @@
-﻿#include "CAM.h"
+﻿#include "header.h"
+#include "CAM.h"
 #include "singal_generator.h"
 #include "signal_validity_checker.h"
 #include "spare_allocation_analyzer.h"
 
 int pcamCnt = 0;
-int struct_type = S3;
+const int struct_type = S3;
+const int sig_len = (struct_type != S3) ? R_SPARE + C_SPARE : R_SPARE + C_SPARE - 1;
+
 SignalGenerator generator;
 Pcam pcam[PCAM_SIZE];
 Npcam npcam[NPCAM_SIZE];
@@ -12,7 +15,7 @@ CamStruct cam;
 
 // signal generator
 bool DSSS[R_SPARE + C_SPARE];
-bool RLSS[R_SPARE];
+bool RLSS[R_SPARE-1];
 
 // signal validity checker
 int pivot_block[PCAM_SIZE];
@@ -54,19 +57,27 @@ void show_signals() {
 	cout << " is valid? : " << signal_valid();
 }
 
+void show_unused_spare() {
+	cout << "unused spare : ";
+	for (int i = 0; i < PCAM_SIZE; i++)
+		cout << unused_spare[i];
+}
 
 void BIRA() {
+	int testCnt = (struct_type != S3) ? 70 : 35 * 3;
 	store_CAM();			// Fault collection
 	cam.showPcam();
 	cam.showNpcam();
-	for (int i = 0; i < 70*4; i++) {
+	for (int i = 0; i < testCnt; i++) {
 		singal_generate();
-		spare_allocation();
-		if (signal_valid()) {
+		if (signal_valid() && DSSS[1] && DSSS[2] && DSSS[6]) {
+			spare_allocation();
 			show_signals();
 			cout << '\t';
 			show_nonpivot_cover();
 			cout << '\n';
+			show_unused_spare();
+			cout << endl;
 		}
 	}
 }

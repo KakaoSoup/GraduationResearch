@@ -4,7 +4,7 @@
 #include "spare_struct.h"
 
 extern bool DSSS[R_SPARE + C_SPARE];
-extern bool RLSS[R_SPARE];
+extern bool RLSS[R_SPARE-1];
 extern void singal_generate();
 
 class SignalGenerator {
@@ -18,7 +18,8 @@ public:
 		DSSS[i] = true;
 		DSSS[j] = true;
 		DSSS[k] = true;
-		DSSS[p] = true;
+		if(struct_type != S3)
+			DSSS[p] = true;
 	}
 	void set_rlss(int i) {
 		RLSS[i] = true;
@@ -27,7 +28,7 @@ public:
 		static int ri = 0;
 		memset(RLSS, 0, sizeof(RLSS));
 		set_rlss(ri);
-		if (ri < R_SPARE - 1) {
+		if (ri < R_SPARE - 2) {
 			ri++;
 			this->rlss_run = true;
 		}
@@ -41,12 +42,11 @@ public:
 		static int j = 1;
 		static int k = 2;
 		static int p = 3;
-
 		memset(DSSS, 0, sizeof(DSSS));
 		set_dsss(i, j, k, p);
 
 		if (!hold) {
-			if (p < R_SPARE + C_SPARE - 1)
+			if (p < R_SPARE + C_SPARE - 1 && struct_type != S3)
 				p++;
 			else if (k < R_SPARE + C_SPARE - 2) {
 				k++;
@@ -73,7 +73,8 @@ public:
 	}
 	void show_rlss() {
 		cout << "RLSS=";
-		for (int i = 0; i < R_SPARE; i++) {
+		const int len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
+		for (int i = 0; i < len; i++) {
 			if (RLSS[i])
 				cout << '1';
 			else
@@ -83,7 +84,7 @@ public:
 
 	void show_dsss() {
 		cout << "DSSS=";
-		for (int i = 0; i < R_SPARE + C_SPARE; i++) {
+		for (int i = 0; i < sig_len; i++) {
 			if (DSSS[i])
 				cout << '1';
 			else
