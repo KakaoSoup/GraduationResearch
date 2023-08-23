@@ -9,6 +9,8 @@ extern int must_repair[PCAM_SIZE];
 extern bool uncover_must_pivot[PCAM_SIZE];
 extern bool unused_spare[R_SPARE + C_SPARE];
 
+// if DSSS and RLSS is valid -> True
+// valid : 1) Signal covered all must repair fault line, 2) Spares at block doesn't exceed the allocated number of spares  
 bool signal_valid() {
 	int cnt_col[2] = { 0 };
 	int cnt_row[2] = { 0 };
@@ -21,20 +23,22 @@ bool signal_valid() {
 
 	for (int i = 0; i < pcamCnt; i++) {
 		fail = false;
+		// find the double signal of row spare
 		if (DSSS[i] == ROW) {
 			if (RLSS[rlss_idx++])
 				wide_idx = i;
 		}
 		if (must_repair[i]) {
 			switch (must_repair[i]) {
-			case 0x4:	// row must
+			// row must repair
+			case 0x4:
 				if (DSSS[i] != ROW) {
 					fail = true;
 					uncover_must_pivot[i] = true;
 					continue;
 				}
-				//cnt_row[pivot_block[i] - 1]++;
 				switch (struct_type) {
+				// spare structure 1 with row must flag
 				case S1 :
 					if (pivot_block[i] == 1) {
 						if (unused_spare[0])
@@ -53,6 +57,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 2 with row must flag
 				case S2 :
 					if (pivot_block[i] == 1) {
 						if (unused_spare[0])
@@ -71,6 +76,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 3 with row must flag
 				case S3 :
 					if (pivot_block[i] == 1) {
 						if (unused_spare[0])			// Sslr : block1
@@ -93,14 +99,15 @@ bool signal_valid() {
 					break;
 				}
 				break;
-			case 0x2:	// col must
+			// col must repair
+			case 0x2:
 				if (DSSS[i] != COL) {
 					fail = true;
 					uncover_must_pivot[i] = true;
 					continue;
 				}
-				//cnt_col[pivot_block[i] - 1]++;
 				switch (struct_type) {
+				// spare structure 1 with col must flag
 				case S1:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[4])
@@ -119,6 +126,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 2 with col must flag
 				case S2:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[4])
@@ -141,6 +149,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 3 with col must flag
 				case S3:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[4])
@@ -167,21 +176,15 @@ bool signal_valid() {
 					break;
 				}
 				break;
-			case 0x1:	// adj must			adjacent must일 경우, RLSS는 무조건 1이 되어야 하는가?
-				/*
-				if (DSSS[i] != ROW && i != wide_idx) {
-					uncover_must_pivot[i] = true;
-					fail = true;
-				}
-				*/
-				//temp = pivot_block[i] - 1;
-				//cnt_row[!temp]++;
+			// row adjacent must flag
+			case 0x1:	// adj must, adjacent must일 경우, RLSS는 무조건 1이 되어야 하는가?
 				if (DSSS[i] != ROW) {
 					fail = true;
 					uncover_must_pivot[i] = true;
 					continue;
 				}
 				switch (struct_type) {
+				// spare structure 1 with row adjacent must flag
 				case S1:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[1])		
@@ -200,6 +203,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 2 with row adjacent must flag
 				case S2:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[1])
@@ -218,6 +222,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+				// spare structure 3 with row adjacent must flag
 				case S3:
 					if (pivot_block[i] == 1) {
 						if (unused_spare[2])
@@ -255,60 +260,3 @@ bool signal_valid() {
 
 
 #endif // !__SIGNALVALIDITYCHECKER_H
-
-
-/*
-
-SpareStruct strct(struct_type);
-	switch (struct_type) {
-	case S1:
-		if (cnt_row[0] > strct.bank[0].spares[0] || cnt_row[1] > strct.bank[1].spares[0])
-			return false;
-		if (cnt_col[0] > strct.bank[0].spares[1] || cnt_col[1] > strct.bank[1].spares[1])
-			return false;
-		break;
-	case S2:
-		if (cnt_row[0] > strct.bank[0].spares[0])
-			return false;
-		if (cnt_row[1] > strct.bank[1].spares[0])
-			return false;
-		if (cnt_col[0] > strct.bank[0].spares[1]) {
-			if (cnt_col[0] - strct.bank[0].spares[1] > strct.bank[0].spares[2])
-				return false;
-			else
-				strct.bank[0].spares[2] -= (cnt_col[0] - strct.bank[0].spares[1]);
-		}
-		if (cnt_col[1] > strct.bank[1].spares[1]) {
-			if (cnt_col[0] - strct.bank[1].spares[1] > strct.bank[0].spares[2])
-				return false;
-		}
-		break;
-	case S3:
-		if (wide_idx > 0) {
-			if (cnt_row[0] > strct.bank[0].spares[0])
-				return false;
-			if (cnt_row[1] > strct.bank[1].spares[0])
-				return false;
-		}
-		else {
-			if (cnt_row[0] > strct.bank[0].spares[0] || cnt_row[1] > strct.bank[1].spares[0]) {
-				if (cnt_row[0] + cnt_row[1] > (strct.bank[0].spares[0] + strct.bank[1].spares[0] + strct.bank[0].spares[3]))
-					return false;
-			}
-		}
-		if (cnt_col[0] > strct.bank[0].spares[1]) {
-			if (cnt_col[0] - strct.bank[0].spares[1] > strct.bank[0].spares[2])
-				return false;
-			else
-				strct.bank[0].spares[2] -= (cnt_col[0] - strct.bank[0].spares[1]);
-		}
-		if (cnt_col[1] > strct.bank[1].spares[1]) {
-			if (cnt_col[0] - strct.bank[1].spares[1] > strct.bank[0].spares[2])
-				return false;
-		}
-		break;
-	default:
-		break;
-	}
-
-*/

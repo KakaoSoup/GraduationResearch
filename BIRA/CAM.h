@@ -67,6 +67,7 @@ private:
 	int bnk_len;
 	int pcam_cnt;
 public:
+	// initialize variables
 	void init() {
 		row_len = LEN;
 		col_len = LEN;
@@ -76,31 +77,39 @@ public:
 	CamStruct() {
 		init();
 	}
+	// set must flag with spare structure
 	void set_flag(const int idx, const int type) {
 		switch (type) {
+		// row must flag
 		case 1:
 			pcam[idx].must_repair |= 0x4;
 			break;
+		// col must flag
 		case 2:
 			pcam[idx].must_repair |= 0x2;
 			break;
+		// row adjacent must flag
 		case 3:
 			pcam[idx].must_repair |= 0x1;
 			break;
 		}
 	}
+	// set NPCAM
 	void setNpcam(const int ptr, const bool rowcol, const int addr, const int bnk) {
 		int cnt[3] = { 0 };
 		bool find = false;
 		Npcam* nptr = nullptr;
 	
+		// checks the number of NPCAMs shared address and finds the unactive NPCAM index
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].en) {
 				if (npcam[i].pcam_ptr == ptr && npcam[i].rc == rowcol) {
 					// npcam share with row
 					if (!rowcol == ROW) {
+						// with same bnk
 						if (pcam[ptr].bnk_addr == bnk)
 							cnt[0]++;
+						// with adj bnk
 						else
 							cnt[2]++;
 					}
@@ -116,6 +125,7 @@ public:
 			}
 		}
 
+		// # of NPCAM overs the allocated number
 		if (cnt[0] >= C_SPARE - 1) {
 			set_flag(ptr, 1);
 			return;
@@ -129,6 +139,7 @@ public:
 			return;
 		}
 
+		// nptr : empty NPCAM
 		if (nptr != nullptr) {
 			nptr->en = true;
 			nptr->pcam_ptr = ptr;
@@ -136,11 +147,13 @@ public:
 			nptr->addr = addr;
 			nptr->bnk = bnk;
 		}
+		// there is no empty NPCAM
 		else
 			cout << "NPCAM is full!" << endl;
 	}
 	void setCam(const int row, const int col, const int bnk) {
 		for (int idx = 0; idx < this->pcam_cnt; idx++) {
+			// new fault shares the address with already stored PCAM
 			if (pcam[idx].row_addr == row) {
 				setNpcam(idx, COL, col, bnk);
 				return;
@@ -150,12 +163,16 @@ public:
 				return;
 			}
 		}
-		pcam[this->pcam_cnt].en = true;
-		pcam[this->pcam_cnt].row_addr = row;
-		pcam[this->pcam_cnt].col_addr = col;
-		pcam[this->pcam_cnt++].bnk_addr = bnk;
-		pcamCnt = this->pcam_cnt;
+		// set PCAM
+		if (this->pcam_cnt < PCAM_SIZE) {
+			pcam[this->pcam_cnt].en = true;
+			pcam[this->pcam_cnt].row_addr = row;
+			pcam[this->pcam_cnt].col_addr = col;
+			pcam[this->pcam_cnt++].bnk_addr = bnk;
+			pcamCnt = this->pcam_cnt;
+		}
 	}
+	// show PCAMs
 	void showPcam() {
 		int idx = 0;
 		cout << "PCAM(en/row/col/bnk/must) : " << endl;
@@ -172,6 +189,7 @@ public:
 		}
 		cout << endl;
 	}
+	// show NPCAMs
 	void showNpcam() {
 		int idx = 0;
 		cout << "NPCAM(en/ptr/rc/addr/bnk) : " << endl;;
@@ -188,9 +206,11 @@ public:
 		}
 		cout << endl;
 	}
+	// return PCAM bank address
 	int rtn_Pvblock(int idx) {
 		return pcam[idx].bnk_addr;
 	}
+	// return PCAM must flags
 	int rtn_must(int idx) {
 		return pcam[idx].must_repair;
 	}

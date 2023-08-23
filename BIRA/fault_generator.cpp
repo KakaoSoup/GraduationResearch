@@ -8,8 +8,8 @@ struct Fault {
 
 Fault faults[FAULT];
 
+// reset signals and variables
 static void init() {
-	// reset signals and variables
 	early_term = false;
 	memset(mem, 0, sizeof(mem));
 	memset(faults, 0, sizeof(faults));
@@ -51,7 +51,7 @@ static void fault_addr_convert(int* fault_addr) {
 }
 
 static void print_mem() {
-	cout << "\tbank1:" << "\t\t\t\t\t" << "bank2:" << endl;
+	cout << "\tbank1:" << "\t\t\t" << "bank2:" << endl;
 	for (int i = 0; i < SIZE; i++) {
 		// print bank 1
 		cout << 'r' << i << '\t';
@@ -117,7 +117,7 @@ static void read_fault_file() {
 
 extern void fault_generation() {
 	init();
-	freopen("input.txt", "r", stdin);		// read 'input.txt' file
+	freopen("memory.txt", "r", stdin);		// read 'input.txt' file
 	read_fault_file();
 	//generate_fault();
 	//show_faults();

@@ -7,13 +7,17 @@ extern bool DSSS[R_SPARE + C_SPARE];
 extern bool RLSS[R_SPARE-1];
 extern void singal_generate();
 
+
+// Module Signal Generator
 class SignalGenerator {
 private:
+	// True if RLSS is generating
 	bool rlss_run;
 public:
 	SignalGenerator() {
 		rlss_run = 0;
 	}
+	// set 1 to DSSS with indexes 
 	void set_dsss(int i, int j, int k, int p) {
 		DSSS[i] = true;
 		DSSS[j] = true;
@@ -21,9 +25,11 @@ public:
 		if(struct_type != S3)
 			DSSS[p] = true;
 	}
+	// set 1 to RLSS with index
 	void set_rlss(int i) {
 		RLSS[i] = true;
 	}
+	// generate RLSS signal by one clk
 	void RLSS_generator() {
 		static int ri = 0;
 		memset(RLSS, 0, sizeof(RLSS));
@@ -37,6 +43,7 @@ public:
 			this->rlss_run = false;
 		}
 	}
+	// genrate DSSS signal with one clk
 	void DSSS_genearator(bool hold) {
 		static int i = 0;
 		static int j = 1;
@@ -45,6 +52,7 @@ public:
 		memset(DSSS, 0, sizeof(DSSS));
 		set_dsss(i, j, k, p);
 
+		// hold -> true : RLSS is run and DSSS is updated with 3 clk
 		if (!hold) {
 			if (p < R_SPARE + C_SPARE - 1 && struct_type != S3)
 				p++;
@@ -71,6 +79,7 @@ public:
 			}
 		}
 	}
+	// show RLSS signal
 	void show_rlss() {
 		cout << "RLSS=";
 		const int len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
@@ -81,7 +90,7 @@ public:
 				cout << '0';
 		}
 	}
-
+	// show DSSS signal
 	void show_dsss() {
 		cout << "DSSS=";
 		for (int i = 0; i < sig_len; i++) {
@@ -91,6 +100,7 @@ public:
 				cout << '0';
 		}
 	}
+	// generate DSSS and RLSS with Spare Structure
 	void signal_generate() {
 		switch (struct_type) {
 		case S3:

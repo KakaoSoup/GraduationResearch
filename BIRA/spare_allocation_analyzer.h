@@ -16,6 +16,7 @@ private:
 	Spare RCx[C_SPARE];
 	int row_len;
 public:
+	// initialize repair candidate
 	void init() {
 		memset(RRx, 0, sizeof(RRx));
 		memset(RCx, 0, sizeof(RCx));
@@ -25,6 +26,7 @@ public:
 		row_len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
 		init();
 	}
+	// MUX : set repair candidate from PCAM by DSSS signal 
 	void set_repair_cand() {
 		int cidx = 0, ridx = 0;
 		for (int i = 0; i < sig_len; i++) {
@@ -40,12 +42,15 @@ public:
 			}
 		}
 	}
+	// Row Address Comparator
 	bool RAC(const int RRx_addr, const int NPr_addr, const int RRx_bnk, const int NPr_bnk, const bool RLSS) {
 		return (RRx_addr != NPr_addr) ? false : (RLSS || (RRx_bnk == NPr_bnk));
 	}
+	// Col Address Comparator
 	bool CAC(const int RCx_addr, const int NPc_addr, const int RCx_bnk, const int NPc_bnk) {
 		return (RCx_addr != NPc_addr) ? false : (RCx_bnk != NPc_bnk) ? false : true;
 	}
+	// compare row part
 	void comapare_row(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].rc == COL) {
@@ -58,6 +63,7 @@ public:
 			}
 		}
 	}
+	// compare col part
 	void comapare_col(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].rc == ROW) {
@@ -70,6 +76,7 @@ public:
 			}
 		}
 	}
+	// show repair candidate
 	void show_repaircand() {
 		cout << "Row Repair Candidate :" << endl;
 		for (int i = 0; i < R_SPARE; i++) {
@@ -89,10 +96,9 @@ static void init() {
 }
 
 extern void show_nonpivot_cover() {
+	cout << "nonpivot_cover_info : ";
 	for (int i = 0; i < NPCAM_SIZE; i++) {
 		if (npcam[i].en) {
-			cout << endl;
-			cout << "nonpivot_cover_info " << i << " : ";
 			cout << nonpivot_cover_info[i];
 		}
 	}
