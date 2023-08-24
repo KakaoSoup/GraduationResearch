@@ -1,7 +1,15 @@
-#ifndef CAM_H
-#define CAM_H
+#ifndef __CAM_H
+#define __CAM_H
 #include "header.h"
 #include "spare_struct.h"
+#define GLOBAL	0x4
+#define COMMON	0x2
+#define LOCAL	0x1
+
+extern int pcamCnt;
+extern int npcamCnt;
+extern void store_CAM();
+
 /*
 	<PCAM>
 	enable flag :	1 bit
@@ -13,20 +21,7 @@
 	adj row must :	1 bit
 	adj col must :	1 bit
 	1 + 10 + 10 + 2 + 1 + 1 + 1 + 1 = 27 bits
-
-	<NPCAM>
-	enable flag :	1 bit
-	Pivot CAM ptr :	#row + col spares
-	R/C descripotr:	1 bit
-	r or c addr :	3 bits
-	bank addr :		2 bits
-	1 + 4 + 1 + 10 + 2 = 18 bits
 */
-
-extern int pcamCnt;
-extern int npcamCnt;
-extern void store_CAM();
-
 struct Pcam {
 	bool en;
 	int row_addr;
@@ -42,6 +37,15 @@ struct Pcam {
 	}
 };
 
+/*
+	<NPCAM>
+	enable flag :	1 bit
+	Pivot CAM ptr :	#row + col spares
+	R/C descripotr:	1 bit
+	r or c addr :	3 bits
+	bank addr :		2 bits
+	1 + 4 + 1 + 10 + 2 = 18 bits
+*/
 struct Npcam {
 	bool en;
 	int pcam_ptr;
@@ -66,6 +70,7 @@ private:
 	int col_len;
 	int bnk_len;
 	int pcam_cnt;
+	int pcam_size;
 public:
 	// initialize variables
 	void init() {
@@ -73,6 +78,7 @@ public:
 		col_len = LEN;
 		bnk_len = BNK;
 		this->pcam_cnt = 0;
+		this->pcam_size = (STRUCT_TYPE != S3) ? PCAM_SIZE : PCAM_SIZE - 1;
 	}
 	CamStruct() {
 		init();
@@ -151,25 +157,30 @@ public:
 		else
 			cout << "NPCAM is full!" << endl;
 	}
-	void setCam(const int row, const int col, const int bnk) {
+	bool setCam(const int row, const int col, const int bnk) {
 		for (int idx = 0; idx < this->pcam_cnt; idx++) {
 			// new fault shares the address with already stored PCAM
 			if (pcam[idx].row_addr == row) {
 				setNpcam(idx, COL, col, bnk);
-				return;
+				return true;
 			}
 			else if (pcam[idx].col_addr == col && pcam[idx].bnk_addr == bnk) {
 				setNpcam(idx, ROW, row, bnk);
-				return;
+				return true;
 			}
 		}
 		// set PCAM
-		if (this->pcam_cnt < PCAM_SIZE) {
+		if (this->pcam_cnt < this->pcam_size) {
 			pcam[this->pcam_cnt].en = true;
 			pcam[this->pcam_cnt].row_addr = row;
 			pcam[this->pcam_cnt].col_addr = col;
 			pcam[this->pcam_cnt++].bnk_addr = bnk;
 			pcamCnt = this->pcam_cnt;
+			return true;
+		}
+		else {
+			cout << "# of fault over the PCAM size!!" << endl;
+			return false;
 		}
 	}
 	// show PCAMs
@@ -207,7 +218,7 @@ public:
 		cout << endl;
 	}
 	// return PCAM bank address
-	int rtn_Pvblock(int idx) {
+	int rtn_pvblock(int idx) {
 		return pcam[idx].bnk_addr;
 	}
 	// return PCAM must flags

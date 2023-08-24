@@ -1,5 +1,5 @@
-#ifndef SPARE_STRUCT
-#define SPARE_STRUCT
+#ifndef __SPARESTRUCT_H
+#define __SPARESTRUCT_H
 #include <iostream>
 #include "header.h"
 
@@ -69,4 +69,4 @@ struct SpareStruct {
 };
 
 
-#endif // !SPARE_STRUCT
+#endif // !STRUCT_TYPE

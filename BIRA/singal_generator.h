@@ -22,7 +22,7 @@ public:
 		DSSS[i] = true;
 		DSSS[j] = true;
 		DSSS[k] = true;
-		if(struct_type != S3)
+		if(STRUCT_TYPE != S3)
 			DSSS[p] = true;
 	}
 	// set 1 to RLSS with index
@@ -54,7 +54,7 @@ public:
 
 		// hold -> true : RLSS is run and DSSS is updated with 3 clk
 		if (!hold) {
-			if (p < R_SPARE + C_SPARE - 1 && struct_type != S3)
+			if (p < R_SPARE + C_SPARE - 1 && STRUCT_TYPE != S3)
 				p++;
 			else if (k < R_SPARE + C_SPARE - 2) {
 				k++;
@@ -82,7 +82,7 @@ public:
 	// show RLSS signal
 	void show_rlss() {
 		cout << "RLSS=";
-		const int len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
+		const int len = (STRUCT_TYPE != S3) ? R_SPARE : R_SPARE - 1;
 		for (int i = 0; i < len; i++) {
 			if (RLSS[i])
 				cout << '1';
@@ -102,7 +102,7 @@ public:
 	}
 	// generate DSSS and RLSS with Spare Structure
 	void signal_generate() {
-		switch (struct_type) {
+		switch (STRUCT_TYPE) {
 		case S3:
 			RLSS_generator();
 		case S1:

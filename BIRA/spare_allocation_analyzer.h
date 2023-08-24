@@ -23,7 +23,7 @@ public:
 		
 	}
 	SpareAllocationAnalyzer() {
-		row_len = (struct_type != S3) ? R_SPARE : R_SPARE - 1;
+		row_len = (STRUCT_TYPE != S3) ? R_SPARE : R_SPARE - 1;
 		init();
 	}
 	// MUX : set repair candidate from PCAM by DSSS signal 
@@ -122,7 +122,7 @@ void spare_allocation() {
 		pivot_cover[i].alloc = true;
 	}
 	analyzer.set_repair_cand();
-	analyzer.show_repaircand();
+	//analyzer.show_repaircand();
 	analyzer.comapare_row(npcam);
 	analyzer.comapare_col(npcam);
 }

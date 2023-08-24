@@ -93,8 +93,10 @@ static void generate_fault() {
 		randnum = dis(gen);
 		// check if the random number is already used
 		for (i = 0; i <= cnt; i++) {
-			if (fault_addr[i] == randnum)
+			if (fault_addr[i] == randnum) {
+				cnt--;
 				break;
+			}
 			if (i == cnt)
 				fault_addr[cnt] = randnum;
 		}
@@ -117,10 +119,11 @@ static void read_fault_file() {
 
 extern void fault_generation() {
 	init();
-	freopen("memory.txt", "r", stdin);		// read 'input.txt' file
-	read_fault_file();
-	//generate_fault();
-	//show_faults();
+	//freopen("memory.txt", "r", stdin);		// read 'input.txt' file
+	//read_fault_file();
+	generate_fault();
+	show_faults();
 
-	print_mem();
+	if(SIZE < 50)
+		print_mem();
 }

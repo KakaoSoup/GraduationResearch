@@ -37,7 +37,7 @@ bool signal_valid() {
 					uncover_must_pivot[i] = true;
 					continue;
 				}
-				switch (struct_type) {
+				switch (STRUCT_TYPE) {
 				// spare structure 1 with row must flag
 				case S1 :
 					if (pivot_block[i] == 1) {
@@ -106,7 +106,7 @@ bool signal_valid() {
 					uncover_must_pivot[i] = true;
 					continue;
 				}
-				switch (struct_type) {
+				switch (STRUCT_TYPE) {
 				// spare structure 1 with col must flag
 				case S1:
 					if (pivot_block[i] == 1) {
@@ -183,7 +183,7 @@ bool signal_valid() {
 					uncover_must_pivot[i] = true;
 					continue;
 				}
-				switch (struct_type) {
+				switch (STRUCT_TYPE) {
 				// spare structure 1 with row adjacent must flag
 				case S1:
 					if (pivot_block[i] == 1) {
