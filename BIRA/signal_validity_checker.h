@@ -25,8 +25,12 @@ bool signal_valid() {
 		fail = false;
 		// find the double signal of row spare
 		if (DSSS[i] == ROW) {
-			if (RLSS[rlss_idx++])
-				wide_idx = i;
+			if (RLSS[rlss_idx++]) {
+				//wide_idx = i;
+				if (STRUCT_TYPE == S3) {
+
+				}
+			}
 		}
 		if (must_repair[i]) {
 			switch (must_repair[i]) {
@@ -225,18 +229,18 @@ bool signal_valid() {
 				// spare structure 3 with row adjacent must flag
 				case S3:
 					if (pivot_block[i] == 1) {
-						if (unused_spare[2])
-							unused_spare[2] = false;
-						else if (unused_spare[1])
+						if (unused_spare[1])
 							unused_spare[1] = false;
+						else if (unused_spare[2])
+							unused_spare[2] = false;
 						else
 							fail = true;
 					}
 					else if (pivot_block[i] == 2) {
-						if (unused_spare[2])
-							unused_spare[2] = false;
-						else if (unused_spare[0])
+						if (unused_spare[0])
 							unused_spare[0] = false;
+						else if (unused_spare[2])
+							unused_spare[2] = false;
 						else
 							fail = true;
 					}

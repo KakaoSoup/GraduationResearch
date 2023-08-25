@@ -44,16 +44,17 @@ public:
 		}
 	}
 	// genrate DSSS signal with one clk
-	void DSSS_genearator(bool hold) {
+	void DSSS_genearator() {
 		static int i = 0;
 		static int j = 1;
 		static int k = 2;
 		static int p = 3;
+
 		memset(DSSS, 0, sizeof(DSSS));
 		set_dsss(i, j, k, p);
 
 		// hold -> true : RLSS is run and DSSS is updated with 3 clk
-		if (!hold) {
+		if (!this->rlss_run) {
 			if (p < R_SPARE + C_SPARE - 1 && STRUCT_TYPE != S3)
 				p++;
 			else if (k < R_SPARE + C_SPARE - 2) {
@@ -107,7 +108,7 @@ public:
 			RLSS_generator();
 		case S1:
 		case S2:
-			DSSS_genearator(rlss_run);
+			DSSS_genearator();
 			break;
 		default:
 			break;

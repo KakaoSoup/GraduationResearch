@@ -53,26 +53,30 @@ public:
 	// compare row part
 	void comapare_row(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
-			if (npcam[i].rc == COL) {
-				for (int j = 0; j < row_len; j++)
-					nonpivot_cover_info[i] |= RAC(RRx[j].addr, pcam[npcam[i].pcam_ptr].row_addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
-			}
-			else {
-				for (int j = 0; j < row_len; j++)
-					nonpivot_cover_info[i] |= RAC(RRx[j].addr, npcam[i].addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
+			if (npcam[i].en) {
+				if (npcam[i].rc == COL) {
+					for (int j = 0; j < row_len; j++)
+						nonpivot_cover_info[i] |= RAC(RRx[j].addr, pcam[npcam[i].pcam_ptr].row_addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
+				}
+				else {
+					for (int j = 0; j < row_len; j++)
+						nonpivot_cover_info[i] |= RAC(RRx[j].addr, npcam[i].addr, RRx[j].bnk, npcam[i].bnk, RLSS[j]);
+				}
 			}
 		}
 	}
 	// compare col part
 	void comapare_col(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
-			if (npcam[i].rc == ROW) {
-				for (int j = 0; j < C_SPARE; j++)
-					nonpivot_cover_info[i] |= CAC(RCx[j].addr, pcam[npcam[i].pcam_ptr].col_addr, RCx[j].bnk, npcam[i].bnk);
-			}
-			else {
-				for (int j = 0; j < C_SPARE; j++)
-					nonpivot_cover_info[i] |= CAC(RCx[j].addr, npcam[i].addr, RCx[j].bnk, npcam[i].bnk);
+			if (npcam[i].en) {
+				if (npcam[i].rc == ROW) {
+					for (int j = 0; j < C_SPARE; j++)
+						nonpivot_cover_info[i] |= CAC(RCx[j].addr, pcam[npcam[i].pcam_ptr].col_addr, RCx[j].bnk, npcam[i].bnk);
+				}
+				else {
+					for (int j = 0; j < C_SPARE; j++)
+						nonpivot_cover_info[i] |= CAC(RCx[j].addr, npcam[i].addr, RCx[j].bnk, npcam[i].bnk);
+				}
 			}
 		}
 	}
@@ -105,8 +109,8 @@ extern void show_nonpivot_cover() {
 }
 
 void spare_allocation() {
-	if (!signal_valid())
-		return;
+	//if (!signal_valid())
+	//	return;
 	init();
 	SpareAllocationAnalyzer analyzer;
 	for (int i = 0; i < pcamCnt; i++) {

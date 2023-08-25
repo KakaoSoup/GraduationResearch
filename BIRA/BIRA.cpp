@@ -86,18 +86,20 @@ void BIRA() {
 
 	// Fault collection
 	store_CAM();
+
 	if (early_term) {
 		cout << "Test was ealry terminated!!" << endl;
 		return;
 	}
+
 	cam.showPcam();
 	cam.showNpcam();
 
 	// Fault Analysis with 1 clk
 	for (int i = 0; i < testCnt; i++) {
 		singal_generate();
-		if (signal_valid() && DSSS[1] && DSSS[2] && DSSS[6]) {
-		//if(signal_valid()) {
+		//if (signal_valid() && DSSS[1] && DSSS[2] && DSSS[6]) {
+		if(signal_valid()) {
 			spare_allocation();
 			show_info();
 			if (redundant_analyzer.show_final_result())
