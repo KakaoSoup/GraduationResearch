@@ -1,109 +1,131 @@
 ﻿#include "header.h"
-#include "CAM.h"
-#include "singal_generator.h"
-#include "signal_validity_checker.h"
-#include "spare_allocation_analyzer.h"
-#include "redundant_analyzer.h"
 
-// Enviroment variables
-int pcamCnt = 0;
-int sig_len = (STRUCT_TYPE != S3) ? (R_SPARE + C_SPARE) : (R_SPARE + C_SPARE - 1);
+struct Fault {
+	int bank;			// bank address
+	int row_addr;		// row address
+	int col_addr;		// col address
+};
 
-// Modules
-CamStruct cam;
-Pcam pcam[PCAM_SIZE];
-Npcam npcam[NPCAM_SIZE];
-SignalGenerator generator;
-RedundantAnalyzer redundant_analyzer;
+Fault faults[FAULT];
 
-// Signal Generator variables
-bool DSSS[R_SPARE + C_SPARE];
-bool RLSS[R_SPARE-1];
+// reset signals and variables
+static void init() {
+	early_term = false;
+	memset(mem, 0, sizeof(mem));
+	memset(faults, 0, sizeof(faults));
+}
 
-// Signal Validity Checker variables
-int pivot_block[PCAM_SIZE];
-int must_repair[PCAM_SIZE];
-bool uncover_must_pivot[PCAM_SIZE] = { 0 };
-bool unused_spare[R_SPARE + C_SPARE] = { 1 };
-
-// Spare Allocation Analyzer variables
-Spare pivot_cover[R_SPARE + C_SPARE];
-int uncover_nonpivot_addr[NPCAM_SIZE];
-bool nonpivot_cover_info[NPCAM_SIZE];
-
-// store fault to CAM structure
-static void store_CAM() {
-	int pcam_ptr = 0;
-	
-	for (int k = 0; k < BNK; k++) {
-		for (int i = 0; i < SIZE; i++) {
-			for (int j = 0; j < SIZE; j++) {
-				if (mem[k][i][j])
-					early_term = !cam.setCam(i, j, k + 1);
-				if (early_term)
-					return;
-			}
+// 1D fault address -> 2D fault address
+static void fault_arrange() {
+	for (int i = 0; i < FAULT; i++) {
+		// bank0
+		if (faults[i].bank & 0x1) {
+			mem[0][faults[i].row_addr][faults[i].col_addr] = true;
+		}
+		// bank1
+		else {
+			mem[1][faults[i].row_addr][faults[i].col_addr] = true;
 		}
 	}
-	for (int i = 0; i < PCAM_SIZE; i++) {
-		pivot_block[i] = cam.rtn_pvblock(i);
-		must_repair[i] = cam.rtn_must(i);
+}
+
+// to mark on Memory with the 2D fault address
+static void fault_addr_convert(int* fault_addr) {
+	int msb = 1 << (LEN * BNK);			// msb whether bank 1 (01) or bank 2 (10)
+	int mask = SIZE;
+	mask--;									// mask = 111...111 with legth of LEN
+	for (int i = 0; i < FAULT; i++) {
+		// bank1
+		if (msb & fault_addr[i]) {								// if msb is 1 = bank 2
+			faults[i].bank = 0x2;								// extract bank address
+			faults[i].col_addr = fault_addr[i] & mask;			// extract col address
+			faults[i].row_addr = (fault_addr[i] >> LEN) & mask;	// extract row address
+		}
+		// bank0
+		else {													// if msb is 1 = bank 2
+			faults[i].bank = 0x1;								// extract bank address
+			faults[i].col_addr = fault_addr[i] & mask;			// extract col address
+			faults[i].row_addr = (fault_addr[i] >> LEN) & mask;	// extract row address
+		}
 	}
 }
 
-// run singal generator with 1 by 1
-static void singal_generate() {
-	generator.signal_generate();
-}
-
-// show DSSS and RLSS signals
-static void show_signals() {
-	generator.show_dsss();
-	cout << ' ';
-	generator.show_rlss();
-	cout << " is valid? : " << signal_valid();
-}
-
-// show unused spares
-static void show_unused_spare() {
-	cout << "unused spare : ";
-	for (int i = 0; i < PCAM_SIZE; i++)
-		cout << unused_spare[i];
-}
-
-static void show_info() {
-	show_signals();
-	cout << '\t';
-	show_nonpivot_cover();
-	cout << '\n';
-	show_unused_spare();
+static void print_mem() {
+	cout << "\tbank1:" << "\t\t\t" << "bank2:" << endl;
+	for (int i = 0; i < SIZE; i++) {
+		// print bank 1
+		cout << 'r' << i << '\t';
+		for (int j = 0; j < SIZE; j++) {
+			cout << mem[0][i][j] << ' ';
+		}
+		cout << '\t';
+		// print bank 2
+		for (int j = 0; j < SIZE; j++) {
+			cout << mem[1][i][j] << ' ';
+		}
+		cout << endl;
+	}
 	cout << endl;
 }
 
-void BIRA() {
-	// total clk : S1, S2 -> 8C4, S3 -> 7C3 * 3
-	int testCnt = (STRUCT_TYPE != S3) ? 70 : 35 * 3;
+static void show_faults() {
+	cout << "fault address of " << int(SIZE) << " X " << int(SIZE) << ", " << BNK << " memory bank" << endl << endl << "\tbank\trow\tcol" << endl;
+	for (int i = 0; i < FAULT; i++) {
+		cout << '#' << i + 1 << " :" << '\t' << faults[i].bank << ",\t" << faults[i].row_addr << ",\t" << faults[i].col_addr << endl;
+	}
+	cout << endl;
+}
 
-	// Fault collection
-	store_CAM();
+static void generate_fault() {
+	int fault_addr[FAULT];
+	int cnt = 0;
+	int randnum = 0;
+	int i = 0;
 
-	if (early_term) {
-		cout << "Test was ealry terminated!!" << endl;
-		return;
+	// generate random number with 0 ~ 1111....1111 = bank row * bank col * #bank : (LEN + LEN + 1) 1's
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(0, (SIZE * SIZE * BNK) - 1);
+	memset(fault_addr, 0, sizeof(fault_addr));
+
+	// generate random number (#randnum = FAULT(# total fault))
+	while (cnt < FAULT) {
+		// extract random number
+		randnum = dis(gen);
+		// check if the random number is already used
+		for (i = 0; i <= cnt; i++) {
+			if (fault_addr[i] == randnum) {
+				cnt--;
+				break;
+			}
+			if (i == cnt)
+				fault_addr[cnt] = randnum;
+		}
+		cnt++;
 	}
 
-	cam.showPcam();
-	cam.showNpcam();
+	fault_addr_convert(fault_addr);
+	fault_arrange();
+}
 
-	// Fault Analysis with 1 clk
-	for (int i = 0; i < testCnt; i++) {
-		singal_generate();
-		//if (signal_valid() && DSSS[1] && DSSS[2] && DSSS[6]) {
-		if(signal_valid()) {
-			spare_allocation();
-			show_info();
-			if (redundant_analyzer.show_final_result())
-				cout << "***Faults are repaired!!***" << endl;
+
+static void read_fault_file() {
+	for (int i = 0; i < SIZE; i++) {
+		for (int k = 0; k < BNK; k++) {
+			for (int j = 0; j < SIZE; j++) {
+				cin >> mem[k][i][j];
+			}
 		}
 	}
+}
+
+extern void fault_generation() {
+	init();
+	//freopen("memory.txt", "r", stdin);		// read 'input.txt' file
+	//read_fault_file();
+	generate_fault();
+	show_faults();
+
+	if (SIZE < 50)
+		print_mem();
 }

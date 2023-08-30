@@ -6,7 +6,7 @@
 #include <cstring>
 #define SIZE			8										// length of bank
 #define LEN				static_cast<int>(ceil(log2(SIZE)))		// length of row, col address bits
-#define FAULT			20										// # of total faults
+#define FAULT			16										// # of total faults
 #define BNK				2										// # of banks
 #define ROW				1
 #define COL				0

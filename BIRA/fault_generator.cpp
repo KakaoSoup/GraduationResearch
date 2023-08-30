@@ -121,10 +121,10 @@ static void read_fault_file() {
 
 extern void fault_generation() {
 	init();
-	freopen("memory.txt", "r", stdin);		// read 'input.txt' file
-	read_fault_file();
-	//generate_fault();
-	//show_faults();
+	//freopen("memory.txt", "r", stdin);		// read 'input.txt' file
+	//read_fault_file();
+	generate_fault();
+	show_faults();
 
 	if(SIZE < 50)
 		print_mem();
