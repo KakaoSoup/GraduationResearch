@@ -15,17 +15,19 @@ private:
 	Spare RRx[R_SPARE];
 	Spare RCx[C_SPARE];
 	int row_len;
+
 public:
 	// initialize repair candidate
 	void init() {
 		memset(RRx, 0, sizeof(RRx));
 		memset(RCx, 0, sizeof(RCx));
-		
 	}
+
 	SpareAllocationAnalyzer() {
 		row_len = (STRUCT_TYPE != S3) ? R_SPARE : R_SPARE - 1;
 		init();
 	}
+
 	// MUX : set repair candidate from PCAM by DSSS signal 
 	void set_repair_cand() {
 		int cidx = 0, ridx = 0;
@@ -42,14 +44,17 @@ public:
 			}
 		}
 	}
+
 	// Row Address Comparator
 	bool RAC(const int RRx_addr, const int NPr_addr, const int RRx_bnk, const int NPr_bnk, const bool RLSS) {
 		return (RRx_addr != NPr_addr) ? false : (RLSS || (RRx_bnk == NPr_bnk));
 	}
+
 	// Col Address Comparator
 	bool CAC(const int RCx_addr, const int NPc_addr, const int RCx_bnk, const int NPc_bnk) {
 		return (RCx_addr != NPc_addr) ? false : (RCx_bnk != NPc_bnk) ? false : true;
 	}
+
 	// compare row part
 	void comapare_row(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
@@ -65,6 +70,7 @@ public:
 			}
 		}
 	}
+
 	// compare col part
 	void comapare_col(const Npcam npcam[NPCAM_SIZE]) {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
@@ -80,16 +86,16 @@ public:
 			}
 		}
 	}
+
 	// show repair candidate
 	void show_repaircand() {
 		cout << "Row Repair Candidate :" << endl;
-		for (int i = 0; i < R_SPARE; i++) {
+		for (int i = 0; i < R_SPARE; i++)
 			printf("RRx[%d](addr, bnk) : %d, %d\n", i, RRx[i].addr, RRx[i].bnk);
-		}
+		
 		cout << "Col Repair Candidate :" << endl;
-		for (int i = 0; i < C_SPARE; i++) {
+		for (int i = 0; i < C_SPARE; i++)
 			printf("RCx[%d](addr, bnk) : %d, %d\n", i, RCx[i].addr, RCx[i].bnk);
-		}
 	}
 
 };
@@ -113,6 +119,7 @@ void spare_allocation() {
 	//	return;
 	init();
 	SpareAllocationAnalyzer analyzer;
+
 	for (int i = 0; i < pcamCnt; i++) {
 		if (DSSS[i] == ROW) {
 			pivot_cover[i].rc = ROW;
@@ -125,6 +132,7 @@ void spare_allocation() {
 		pivot_cover[i].bnk = pcam[i].bnk_addr;
 		pivot_cover[i].alloc = true;
 	}
+
 	analyzer.set_repair_cand();
 	//analyzer.show_repaircand();
 	analyzer.comapare_row(npcam);

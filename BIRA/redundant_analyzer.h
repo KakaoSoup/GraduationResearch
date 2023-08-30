@@ -17,12 +17,14 @@ private :
 	Solution solution[PCAM_SIZE];
 	int ridx;
 	bool final_result;
+
 public:
 	RedundantAnalyzer() {
 		memset(solution, 0, sizeof(solution));
 		ridx = 0;
 		final_result = true;
 	}
+
 	bool show_final_result() {
 		for (int i = 0; i < NPCAM_SIZE; i++) {
 			if (npcam[i].en) {

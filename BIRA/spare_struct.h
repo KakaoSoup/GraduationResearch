@@ -42,6 +42,7 @@ struct SpareStruct {
 			bank[1].spares[0] = 2;	// Sslr
 			bank[1].spares[1] = 2;	// Sslc
 			break;
+
 		case 02:
 			// bank1
 			bank[0].spares[0] = 2;	// Sslr
@@ -52,6 +53,7 @@ struct SpareStruct {
 			bank[1].spares[1] = 1;	// Sslc
 			bank[1].spares[2] = 0;	// Sscc
 			break;
+
 		case 03:
 			// bank1
 			bank[0].spares[0] = 1;	// Sslr

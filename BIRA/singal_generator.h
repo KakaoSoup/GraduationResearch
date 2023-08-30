@@ -13,10 +13,12 @@ class SignalGenerator {
 private:
 	// True if RLSS is generating
 	bool rlss_run;
+
 public:
 	SignalGenerator() {
 		rlss_run = 0;
 	}
+
 	// set 1 to DSSS with indexes 
 	void set_dsss(int i, int j, int k, int p) {
 		DSSS[i] = true;
@@ -25,10 +27,12 @@ public:
 		if(STRUCT_TYPE != S3)
 			DSSS[p] = true;
 	}
+
 	// set 1 to RLSS with index
 	void set_rlss(int i) {
 		RLSS[i] = true;
 	}
+
 	// generate RLSS signal by one clk
 	void RLSS_generator() {
 		static int ri = 0;
@@ -43,6 +47,7 @@ public:
 			this->rlss_run = false;
 		}
 	}
+
 	// genrate DSSS signal with one clk
 	void DSSS_genearator() {
 		static int i = 0;
@@ -80,6 +85,7 @@ public:
 			}
 		}
 	}
+
 	// show RLSS signal
 	void show_rlss() {
 		cout << "RLSS=";
@@ -91,6 +97,7 @@ public:
 				cout << '0';
 		}
 	}
+
 	// show DSSS signal
 	void show_dsss() {
 		cout << "DSSS=";
@@ -101,6 +108,7 @@ public:
 				cout << '0';
 		}
 	}
+
 	// generate DSSS and RLSS with Spare Structure
 	void signal_generate() {
 		switch (STRUCT_TYPE) {

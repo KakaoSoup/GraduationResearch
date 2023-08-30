@@ -23,6 +23,7 @@ bool signal_valid() {
 
 	for (int i = 0; i < pcamCnt; i++) {
 		fail = false;
+
 		// find the double signal of row spare
 		if (DSSS[i] == ROW) {
 			if (RLSS[rlss_idx++]) {
@@ -32,6 +33,7 @@ bool signal_valid() {
 				}
 			}
 		}
+
 		if (must_repair[i]) {
 			switch (must_repair[i]) {
 			// row must repair
@@ -103,6 +105,7 @@ bool signal_valid() {
 					break;
 				}
 				break;
+
 			// col must repair
 			case 0x2:
 				if (DSSS[i] != COL) {
@@ -110,6 +113,7 @@ bool signal_valid() {
 					uncover_must_pivot[i] = true;
 					continue;
 				}
+
 				switch (STRUCT_TYPE) {
 				// spare structure 1 with col must flag
 				case S1:
@@ -130,6 +134,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+
 				// spare structure 2 with col must flag
 				case S2:
 					if (pivot_block[i] == 1) {
@@ -153,6 +158,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+
 				// spare structure 3 with col must flag
 				case S3:
 					if (pivot_block[i] == 1) {
@@ -180,6 +186,7 @@ bool signal_valid() {
 					break;
 				}
 				break;
+
 			// row adjacent must flag
 			case 0x1:	// adj must, adjacent must일 경우, RLSS는 무조건 1이 되어야 하는가?
 				if (DSSS[i] != ROW) {
@@ -187,6 +194,7 @@ bool signal_valid() {
 					uncover_must_pivot[i] = true;
 					continue;
 				}
+
 				switch (STRUCT_TYPE) {
 				// spare structure 1 with row adjacent must flag
 				case S1:
@@ -207,6 +215,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+
 				// spare structure 2 with row adjacent must flag
 				case S2:
 					if (pivot_block[i] == 1) {
@@ -226,6 +235,7 @@ bool signal_valid() {
 							fail = true;
 					}
 					break;
+
 				// spare structure 3 with row adjacent must flag
 				case S3:
 					if (pivot_block[i] == 1) {
@@ -253,12 +263,14 @@ bool signal_valid() {
 				break;
 			}
 		}
+
 		if(fail)
 			uncover_must_pivot[i] = true;
 	}
-	if (fail) {
+
+	if (fail)
 		return false;
-	}
+
 	return true;
 }
 
